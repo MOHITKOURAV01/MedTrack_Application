@@ -101,7 +101,7 @@ public class DataInitializer implements CommandLineRunner {
                     .serialNumber("SN-9921-A")
                     .department("Radiology")
                     .status(EquipmentStatus.ACTIVE)
-                    .category("Imaging")
+                    .category(EquipmentCategory.IMAGING)
                     .purchaseDate(LocalDate.now().minusYears(2))
                     .hospital(hospital)
                     .build());
@@ -115,7 +115,7 @@ public class DataInitializer implements CommandLineRunner {
                     .serialNumber("SN-1102-B")
                     .department("ICU")
                     .status(EquipmentStatus.UNDER_MAINTENANCE)
-                    .category("Respiratory")
+                    .category(EquipmentCategory.RESPIRATORY)
                     .purchaseDate(LocalDate.now().minusMonths(6))
                     .hospital(hospital)
                     .build());

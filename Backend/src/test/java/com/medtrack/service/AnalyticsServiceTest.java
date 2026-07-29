@@ -58,7 +58,7 @@ public class AnalyticsServiceTest {
         Equipment eq1 = Equipment.builder()
                 .id(1L)
                 .name("MRI Scanner")
-                .category("Imaging")
+                .category(com.medtrack.model.EquipmentCategory.IMAGING)
                 .status(EquipmentStatus.ACTIVE)
                 .warrantyExpiry(LocalDate.now().plusDays(15)) // upcoming warranty expiration
                 .build();
@@ -66,7 +66,7 @@ public class AnalyticsServiceTest {
         Equipment eq2 = Equipment.builder()
                 .id(2L)
                 .name("Infusion Pump")
-                .category("Monitoring")
+                .category(com.medtrack.model.EquipmentCategory.MONITORING)
                 .status(EquipmentStatus.UNDER_MAINTENANCE) // downtime indicator
                 .warrantyExpiry(LocalDate.now().plusDays(100))
                 .build();

@@ -67,7 +67,7 @@ public class EquipmentServiceTest {
                 .model("Siemens A1")
                 .serialNumber("SN-12345")
                 .department("Radiology")
-                .category("Imaging")
+                .category(com.medtrack.model.EquipmentCategory.IMAGING)
                 .status(EquipmentStatus.ACTIVE)
                 .purchaseDate(LocalDate.of(2025, 1, 1))
                 .equipmentCode("EQ-100")
