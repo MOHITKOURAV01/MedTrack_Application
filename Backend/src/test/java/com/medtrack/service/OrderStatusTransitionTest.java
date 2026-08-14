@@ -61,6 +61,9 @@ class OrderStatusTransitionTest {
     private EmailService emailService;
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private com.medtrack.repository.HospitalRepository hospitalRepository;
     @Mock
     private SupplierAccessGuard supplierAccessGuard;
 
@@ -71,7 +74,7 @@ class OrderStatusTransitionTest {
     @BeforeEach
     void setUp() {
         orderService = new OrderService(orderRepository, equipmentRepository, purchaseOrderPdf,
-                supplierInvoicePdf, emailService, userRepository, supplierAccessGuard);
+                supplierInvoicePdf, emailService, userRepository, hospitalRepository, supplierAccessGuard);
         supplier = new UsernamePasswordAuthenticationToken(
                 "supplier@alpha.test", null, List.of(new SimpleGrantedAuthority("ROLE_SUPPLIER")));
         order = EquipmentOrder.builder()

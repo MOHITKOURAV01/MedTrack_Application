@@ -75,6 +75,9 @@ class OrderListingTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private com.medtrack.repository.HospitalRepository hospitalRepository;
+
     @InjectMocks
     private OrderService orderService;
 

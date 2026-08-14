@@ -5,9 +5,11 @@ import com.medtrack.auth.repository.UserRepository;
 import com.medtrack.model.Equipment;
 import com.medtrack.model.EquipmentOrder;
 import com.medtrack.model.EquipmentStatus;
+import com.medtrack.model.Hospital;
 import com.medtrack.model.ShippingStatus;
 import com.medtrack.repository.EquipmentOrderRepository;
 import com.medtrack.repository.EquipmentRepository;
+import com.medtrack.repository.HospitalRepository;
 import com.medtrack.supplier.security.SupplierAccessGuard;
 import com.medtrack.util.PurchaseOrderPdf;
 import com.medtrack.dto.PlaceOrderRequest;
@@ -28,6 +30,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -46,6 +49,7 @@ public class OrderService {
     private final SupplierInvoicePdf supplierInvoicePdf;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final HospitalRepository hospitalRepository;
     private final SupplierAccessGuard supplierAccessGuard;
 
     public byte[] generateInvoicePdf(Long id) {
@@ -53,14 +57,103 @@ public class OrderService {
         return supplierInvoicePdf.generate(order);
     }
 
+    /**
+     * Emails the commercial invoice to the hospital account that raised the order.
+     *
+     * <p>The recipient used to be {@code order.getCreatedBy()}, which is not an address column.
+     * {@link #placeOrder} writes the user's <em>display name</em> into it and only falls back to the
+     * email when the name is missing, so for every order raised from the hospital order screen the
+     * invoice was addressed to something like {@code Dr Anita Rao}. {@code MimeMessageHelper.setTo}
+     * rejects that, {@code EmailServiceImpl} catches the rejection and logs it, and the controller
+     * still answered {@code 200 OK} - the supplier was told an invoice had been sent that never
+     * left. The old fallback was worse than the failure: {@code admin@hospital.com} is a placeholder
+     * that belongs to no tenant here, so whenever it was reached the invoice really was delivered,
+     * to a stranger, carrying the hospital's order code, equipment and costs.</p>
+     *
+     * <p>The address is now resolved from the user records instead of from a free-text label, and a
+     * failure to resolve one is an error rather than a silent no-op.</p>
+     *
+     * @param id the order to invoice
+     * @throws IllegalStateException if no deliverable hospital address can be resolved for the order
+     */
     public void emailInvoice(Long id) {
         EquipmentOrder order = getOrderById(id);
+        String recipient = resolveInvoiceRecipient(order);
         byte[] pdf = supplierInvoicePdf.generate(order);
-        String recipient = order.getCreatedBy();
-        if (recipient == null || recipient.trim().isEmpty()) {
-            recipient = "admin@hospital.com";
-        }
         emailService.sendInvoiceEmail(recipient, order.getOrderCode(), pdf);
+        log.info("Invoice emailed | orderId={} | orderCode={} | recipient={}",
+                id, order.getOrderCode(), recipient);
+    }
+
+    /**
+     * Works out where an order's invoice should be sent.
+     *
+     * <p>Nothing on {@link EquipmentOrder} is a foreign key to the buyer, so this reconstructs the
+     * link from the two labels the order does carry, in order of how directly each identifies an
+     * account:</p>
+     *
+     * <ol>
+     *   <li>{@code createdBy}, when it holds an address that resolves to a user.
+     *       {@code ProcurementService.acceptQuote} writes {@code hospital.user().getEmail()} there,
+     *       so procurement-raised orders are already exact.</li>
+     *   <li>{@code hospital} read as an organisation, which is what {@link #placeOrder} writes.</li>
+     *   <li>{@code hospital} read as a hospital profile name, which is what
+     *       {@code acceptQuote} writes. Both readings are tried because the two writers disagree,
+     *       the same disagreement {@code EquipmentOrderRepository.HOSPITAL_IDENTITY_MATCH} works
+     *       around when resolving in the other direction.</li>
+     * </ol>
+     *
+     * <p>An organisation or profile name matching more than one account is not resolved to a guess:
+     * sending one hospital's costed invoice to the wrong colleague is the failure this method exists
+     * to prevent, so an ambiguous match is reported as unresolvable.</p>
+     */
+    private String resolveInvoiceRecipient(EquipmentOrder order) {
+        String createdBy = trimToNull(order.getCreatedBy());
+        if (createdBy != null && looksLikeEmailAddress(createdBy)) {
+            Optional<User> byEmail = userRepository.findByEmail(createdBy.toLowerCase(Locale.ROOT));
+            if (byEmail.isPresent()) {
+                return byEmail.get().getEmail();
+            }
+        }
+
+        String hospitalLabel = trimToNull(order.getHospital());
+        if (hospitalLabel != null) {
+            List<User> byOrganization = userRepository.findHospitalUsersByOrganization(hospitalLabel);
+            if (byOrganization.size() == 1) {
+                return byOrganization.get(0).getEmail();
+            }
+
+            if (byOrganization.isEmpty()) {
+                List<Hospital> byProfileName =
+                        hospitalRepository.findByNameIgnoreCaseAndTrimmed(hospitalLabel);
+                if (byProfileName.size() == 1 && byProfileName.get(0).getUser() != null) {
+                    return byProfileName.get(0).getUser().getEmail();
+                }
+            }
+        }
+
+        log.error("Cannot email invoice for order {} ({}): no hospital address resolves from "
+                        + "createdBy='{}' or hospital='{}'",
+                order.getId(), order.getOrderCode(), order.getCreatedBy(), order.getHospital());
+        throw new IllegalStateException(
+                "No hospital email address could be resolved for order " + order.getOrderCode()
+                        + ". The invoice was not sent.");
+    }
+
+    /**
+     * A deliberately loose shape check - one {@code @}, something either side, no whitespace. It
+     * only has to separate an address from a person's name well enough to decide which lookup to
+     * try; whether the address exists is settled by the repository, not by this.
+     */
+    private boolean looksLikeEmailAddress(String value) {
+        return value.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+");
+    }
+
+    private String trimToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
 

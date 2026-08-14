@@ -3,6 +3,8 @@ package com.medtrack.auth.repository;
 import com.medtrack.auth.model.User;
 import com.medtrack.auth.model.AccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -64,4 +66,26 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return {@code true} if a user record exists with the specified username, {@code false} otherwise
      */
     boolean existsByUsername(String username);
+
+    /**
+     * Retrieves the hospital accounts belonging to the given organisation.
+     *
+     * <p>Compared case-insensitively and with surrounding whitespace trimmed, because
+     * {@code organization} is free text typed at registration and
+     * {@link com.medtrack.model.EquipmentOrder#getHospital()} holds a copy of it rather than a
+     * foreign key. Restricted to the hospital role so a supplier account that happens to name the
+     * same organisation is never mistaken for the buyer.</p>
+     *
+     * <p>Returns a list because nothing in the schema makes {@code organization} unique - a hospital
+     * may legitimately have several staff accounts - so the caller decides what an ambiguous match
+     * means rather than the repository picking one.</p>
+     *
+     * @param organization the organisation label to match
+     * @return the hospital users in that organisation, in id order
+     */
+    @Query("SELECT user FROM User user "
+            + "WHERE LOWER(user.role) = 'hospital' "
+            + "AND LOWER(TRIM(user.organization)) = LOWER(TRIM(:organization)) "
+            + "ORDER BY user.id ASC")
+    List<User> findHospitalUsersByOrganization(@Param("organization") String organization);
 }

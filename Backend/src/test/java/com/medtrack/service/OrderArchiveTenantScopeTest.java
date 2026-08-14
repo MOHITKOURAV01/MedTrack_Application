@@ -66,6 +66,9 @@ class OrderArchiveTenantScopeTest {
     private EmailService emailService;
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private com.medtrack.repository.HospitalRepository hospitalRepository;
     @Mock
     private SupplierAccessGuard supplierAccessGuard;
 
@@ -75,7 +78,7 @@ class OrderArchiveTenantScopeTest {
     @BeforeEach
     void setUp() {
         orderService = new OrderService(orderRepository, equipmentRepository, purchaseOrderPdf,
-                supplierInvoicePdf, emailService, userRepository, supplierAccessGuard);
+                supplierInvoicePdf, emailService, userRepository, hospitalRepository, supplierAccessGuard);
         archivedOrder = EquipmentOrder.builder()
                 .id(11L)
                 .orderCode("ORD-ALPHA")
