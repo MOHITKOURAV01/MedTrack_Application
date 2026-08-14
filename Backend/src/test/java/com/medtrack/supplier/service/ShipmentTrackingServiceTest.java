@@ -36,6 +36,14 @@ public class ShipmentTrackingServiceTest {
     @Mock
     private EquipmentOrderRepository orderRepository;
 
+    /**
+     * Left unstubbed in most tests: Mockito returns an empty list, which is what an order that never
+     * went through the procurement flow looks like, and those orders stay claimable by any supplier.
+     * {@link ShipmentOrderOwnershipTest} covers the awarded case.
+     */
+    @Mock
+    private com.medtrack.repository.SupplierQuoteRepository supplierQuoteRepository;
+
     @Mock
     private SupplierAccessGuard supplierAccessGuard;
 
