@@ -31,6 +31,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -72,6 +73,9 @@ class FacilityLocationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
 
     private String username;
     private Hospital hospital;
@@ -568,5 +572,146 @@ class FacilityLocationTest {
                         "Attempting cross-tenant equipment assignment",
                         username),
                 "assigning location to equipment belonging to another hospital must be rejected");
+    }
+
+    // ------------------------------------------------------------------
+    // Deleting a node asks what is standing there, not what once was
+    //
+    // deleteLocation used to count rows in equipment_location_history, which answers a different
+    // question - the assets that were *ever* placed at a node - and so was wrong in both directions.
+    // ------------------------------------------------------------------
+
+    /**
+     * The dangerous direction. {@code EquipmentService.addEquipment} sets {@code equipment.location}
+     * straight from the submitted {@code locationId} and writes no history row, so an asset placed
+     * through the equipment form left the history table empty for its node. The old guard saw
+     * nothing there and deleted the location out from under live equipment - and
+     * {@code equipment.location_id} carries no foreign key constraint, so the database did not stop
+     * it either.
+     */
+    @Test
+    @DisplayName("a node holding equipment placed through the equipment form cannot be deleted")
+    void deletionIsBlockedForEquipmentPlacedWithoutAHistoryRow() {
+        FacilityLocation facility = node("MedTrack General", LocationType.FACILITY, null);
+        FacilityLocation room = node("Store Room", LocationType.ROOM, facility.getId());
+
+        Equipment placedByForm = new Equipment();
+        placedByForm.setEquipmentCode("EQ-FORM-1");
+        placedByForm.setName("Infusion Pump");
+        placedByForm.setDepartment("Radiology");
+        placedByForm.setCategory(EquipmentCategory.MONITORING);
+        placedByForm.setStatus(EquipmentStatus.ACTIVE);
+        placedByForm.setLocationId(room.getId());
+        Equipment saved = equipmentService.addEquipment(placedByForm, username);
+
+        assertEquals(room.getId(), saved.getLocation().getId());
+        assertTrue(historyRepository.findByEquipmentIdOrderByCreatedAtDesc(saved.getId()).isEmpty(),
+                "the equipment form writes no movement record - that is what made this reachable");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> locationService.deleteLocation(room.getId(), username),
+                "a node holding a live asset must not be deletable, however the asset got there");
+
+        assertTrue(locationService.getLocationTree(username).stream()
+                        .anyMatch(candidate -> candidate.getId().equals(room.getId())),
+                "the node must still be there after the refused delete");
+    }
+
+    /**
+     * The other direction. A movement log keeps the row for the node an asset has left, so a node
+     * every asset had moved out of counted as occupied forever and could never be tidied up.
+     */
+    @Test
+    @DisplayName("a node every asset has moved out of can be deleted")
+    void deletionIsAllowedOnceTheLastAssetHasMovedOn() {
+        FacilityLocation facility = node("MedTrack General", LocationType.FACILITY, null);
+        FacilityLocation wardA = node("Ward A", LocationType.ROOM, facility.getId());
+        FacilityLocation wardB = node("Ward B", LocationType.ROOM, facility.getId());
+
+        Equipment asset = asset("EQ-MOVED-1");
+        locationService.assignEquipmentToLocation(asset.getId(), wardA.getId(), null, "in", username);
+        locationService.assignEquipmentToLocation(asset.getId(), wardB.getId(), null, "out", username);
+
+        assertEquals(2, historyRepository.countByLocationId(wardA.getId())
+                        + historyRepository.countByLocationId(wardB.getId()),
+                "both moves stay on the record");
+        assertEquals(1, historyRepository.countByLocationId(wardA.getId()),
+                "Ward A keeps its movement record even though nothing is there now");
+
+        locationService.deleteLocation(wardA.getId(), username);
+
+        assertTrue(locationService.getLocationTree(username).stream()
+                        .noneMatch(candidate -> candidate.getId().equals(wardA.getId())),
+                "an emptied node must be deletable");
+    }
+
+    /**
+     * History outlives the node it names. It is an audit record: it has to keep saying that the
+     * asset moved on a given date, by a given person, for a given reason, after the location is
+     * gone. The association reads as null rather than failing to load, which is what
+     * {@code @NotFound(IGNORE)} on {@code EquipmentLocationHistory.location} buys - without it the
+     * asset's history tab returned a 500 for every asset that had ever passed through the node.
+     */
+    @Test
+    @DisplayName("movement history stays readable after its location is deleted")
+    void historySurvivesTheDeletionOfTheLocationItNames() {
+        FacilityLocation facility = node("MedTrack General", LocationType.FACILITY, null);
+        FacilityLocation wardA = node("Ward A", LocationType.ROOM, facility.getId());
+        FacilityLocation wardB = node("Ward B", LocationType.ROOM, facility.getId());
+
+        Equipment asset = asset("EQ-MOVED-2");
+        locationService.assignEquipmentToLocation(
+                asset.getId(), wardA.getId(), LocalDate.now().minusDays(3), "commissioned", username);
+        locationService.assignEquipmentToLocation(
+                asset.getId(), wardB.getId(), LocalDate.now(), "ward closure", username);
+
+        locationService.deleteLocation(wardA.getId(), username);
+        entityManager.flush();
+        entityManager.clear();
+
+        List<EquipmentLocationHistory> history =
+                locationService.getEquipmentLocationHistory(asset.getId(), username);
+
+        assertEquals(2, history.size(), "no movement record may be lost with the node");
+        assertTrue(history.stream().anyMatch(entry -> "commissioned".equals(entry.getNotes())),
+                "the reason the asset was placed in the deleted ward must still be readable");
+        assertTrue(history.stream().anyMatch(entry -> entry.getLocation() == null),
+                "the entry for the deleted ward reads as no location rather than failing to load");
+        assertTrue(history.stream().anyMatch(entry -> entry.getLocation() != null
+                        && entry.getLocation().getId().equals(wardB.getId())),
+                "the surviving ward is still resolved normally");
+    }
+
+    /**
+     * An archived asset must not hold a node hostage - that would be the same trap the history check
+     * was - but the pointer it leaves behind is cleared on the way out, so restoring it later does
+     * not bring back a reference to a location that no longer exists.
+     */
+    @Test
+    @DisplayName("an archived asset neither blocks the delete nor keeps a dangling location pointer")
+    void archivedEquipmentDoesNotBlockDeletionAndItsPointerIsCleared() {
+        FacilityLocation facility = node("MedTrack General", LocationType.FACILITY, null);
+        FacilityLocation room = node("Decommissioned Suite", LocationType.ROOM, facility.getId());
+
+        Equipment asset = asset("EQ-ARCHIVED-1");
+        locationService.assignEquipmentToLocation(asset.getId(), room.getId(), null, null, username);
+
+        asset.setDeleted(true);
+        equipmentRepository.saveAndFlush(asset);
+        entityManager.clear();
+
+        locationService.deleteLocation(room.getId(), username);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Native, because the class-level @SQLRestriction("deleted = false") hides archived rows
+        // from every JPQL read.
+        Object storedLocationId = entityManager
+                .createNativeQuery("SELECT location_id FROM equipment WHERE id = :id")
+                .setParameter("id", asset.getId())
+                .getSingleResult();
+
+        assertNull(storedLocationId,
+                "an archived asset must not keep pointing at a location that has been deleted");
     }
 }

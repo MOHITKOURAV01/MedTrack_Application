@@ -14,6 +14,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,7 +47,24 @@ public class EquipmentLocationHistory {
     @JoinColumn(name = "hospital_id")
     private Hospital hospital;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    /**
+     * The location the asset was moved to.
+     *
+     * <p>{@code @NotFound(IGNORE)} because this row outlives the node it names. A movement record is
+     * an audit entry: it has to keep saying that the asset moved on a given date, by a given person,
+     * for a given reason, even after the location itself is decommissioned and deleted. The
+     * association was previously {@code optional = false}, so a deleted node left every history row
+     * for the assets that once sat there unreadable - Hibernate throws
+     * {@code EntityNotFoundException} resolving the proxy, and
+     * {@code GET /api/locations/equipment/{id}/history} serialises the entity directly, so that
+     * surfaced as a 500 on the asset's history tab.</p>
+     *
+     * <p>{@code location_id} stays {@code NOT NULL} in the schema - every movement is recorded
+     * against a location that existed at the time - and simply reads as {@code null} once that
+     * location is gone.</p>
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "location_id", nullable = false)
     private FacilityLocation location;
 

@@ -5,6 +5,7 @@ import com.medtrack.model.EquipmentCategory;
 import com.medtrack.model.EquipmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -94,6 +95,45 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>,
             @Param("locationIds") Collection<Long> locationIds,
             Pageable pageable
     );
+
+    /**
+     * How many live assets are standing at a facility location right now.
+     *
+     * <p>This is the only correct answer to "is this location occupied".
+     * {@code LocationService.deleteLocation} used to ask
+     * {@code EquipmentLocationHistoryRepository.countByLocationId} instead, which counts movement
+     * records - assets that were <em>ever</em> placed there. That is a different question and it got
+     * the answer wrong in both directions: assets placed through the equipment create/edit form
+     * write no history row and so did not block the delete, while a location every asset had since
+     * moved out of could never be deleted at all.</p>
+     *
+     * <p>The class-level {@code @SQLRestriction("deleted = false")} applies here, so archived assets
+     * do not hold a location hostage; {@link #clearLocationReference(Long)} deals with the pointer
+     * they leave behind.</p>
+     *
+     * @param locationId the facility location to count occupants of
+     * @return the number of live assets currently assigned there
+     */
+    @Query("SELECT COUNT(e) FROM Equipment e WHERE e.location.id = :locationId")
+    long countByLocationId(@Param("locationId") Long locationId);
+
+    /**
+     * Clears {@code location_id} on every equipment row pointing at the given location, archived rows
+     * included.
+     *
+     * <p>Native because the class-level {@code @SQLRestriction("deleted = false")} hides archived
+     * rows from JPQL, and those are exactly the rows this has to reach: an archived asset that keeps
+     * pointing at a deleted location comes back broken if it is ever restored.
+     * {@code equipment.location_id} carries no foreign key constraint - V15 adds it as a plain
+     * nullable column - so nothing in the database would have caught the dangling pointer.</p>
+     *
+     * @param locationId the facility location being deleted
+     * @return the number of rows whose pointer was cleared
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "UPDATE equipment SET location_id = NULL WHERE location_id = :locationId",
+            nativeQuery = true)
+    int clearLocationReference(@Param("locationId") Long locationId);
 
     // Retired view (issue #744): assets that have been decommissioned keep their full history and
     // remain searchable instead of being deleted. The class-level @SQLRestriction("deleted = false")

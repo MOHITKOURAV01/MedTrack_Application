@@ -26,6 +26,12 @@ import java.util.Set;
  *
  * <p>The tree is hospital-scoped: every operation resolves the caller's hospital from their
  * principal and refuses nodes belonging to any other tenant.</p>
+ *
+ * <p>Two tables describe where an asset is, and they answer different questions.
+ * {@code equipment.location_id} is where the asset is <em>now</em>;
+ * {@code equipment_location_history} is the append-only log of everywhere it has <em>been</em>.
+ * Occupancy checks read the first; the second is audit and is never treated as evidence of current
+ * occupancy - see {@link #deleteLocation}.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -94,6 +100,35 @@ public class LocationService {
         return facilityLocationRepository.save(location);
     }
 
+    /**
+     * Deletes an empty leaf location.
+     *
+     * <p>"Empty" means no asset is standing there now, which is
+     * {@link EquipmentRepository#countByLocationId(Long)}. The guard used to count rows in
+     * {@code equipment_location_history} instead, and that is a different question - it counts the
+     * assets that were <em>ever</em> placed there - so it was wrong in both directions:</p>
+     *
+     * <ul>
+     *   <li>{@code EquipmentService} sets {@code equipment.location} on both create and update
+     *       without writing a history row, so every asset placed through the equipment form left the
+     *       history table empty for its node. The guard passed and the location was deleted out from
+     *       under live equipment. {@code equipment.location_id} carries no foreign key constraint -
+     *       V15 adds it as a plain nullable column - so nothing downstream caught it either; the
+     *       assets were simply left pointing at a row that no longer existed.</li>
+     *   <li>Moving an asset from one node to another leaves the first node's history row in place,
+     *       because that is what a movement log is for. The emptied node then counted as occupied
+     *       forever and could never be deleted.</li>
+     * </ul>
+     *
+     * <p>History is deliberately not consulted and deliberately not deleted. It is the record of what
+     * happened, it has to outlive the node it refers to, and it now does -
+     * {@link EquipmentLocationHistory#getLocation()} reads as {@code null} for a deleted location
+     * rather than failing to load.</p>
+     *
+     * <p>Archived assets do not block the delete either - holding a node hostage for a soft-deleted
+     * record would be the same trap as the history check - but their pointer is cleared on the way
+     * out so a later restore does not resurrect a reference to a location that is gone.</p>
+     */
     @Transactional
     public void deleteLocation(Long id, String username) {
         Hospital hospital = getHospitalForUser(username);
@@ -105,9 +140,15 @@ public class LocationService {
         if (facilityLocationRepository.countByParentId(id) > 0) {
             throw new IllegalArgumentException("Location has child locations and cannot be deleted");
         }
-        if (historyRepository.countByLocationId(id) > 0) {
-            throw new IllegalArgumentException("Location has equipment assigned and cannot be deleted");
+
+        long assignedAssets = equipmentRepository.countByLocationId(id);
+        if (assignedAssets > 0) {
+            throw new IllegalArgumentException(assignedAssets
+                    + " asset(s) are currently assigned to this location. Move them elsewhere before"
+                    + " deleting it.");
         }
+
+        equipmentRepository.clearLocationReference(id);
         facilityLocationRepository.delete(location);
     }
 
