@@ -855,4 +855,126 @@ class DuplicateDetectionTest {
         SoftwareTelemetryLog reassignedLog = telemetryLogRepository.findById(log.getLogId()).orElseThrow();
         assertEquals(merged.getId(), reassignedLog.getEquipment().getId());
     }
+
+    // ------------------------------------------------------------------
+    // The NAME_MODEL rule looks at the model
+    //
+    // matchAgainst took `model` as a parameter and never read it, so the rule scored the name alone
+    // while still calling itself NAME_MODEL and still applying a threshold chosen for a combined
+    // comparison. Hospitals name assets by device type, so it fired on every second pump.
+    // ------------------------------------------------------------------
+
+    @Test
+    @DisplayName("two different models of the same device type are not a duplicate")
+    void differentModelsSharingANameAreNotDuplicates() {
+        asset("AST-77310", "9F41K2ZQ", "Ventilator", "Hamilton C6");
+
+        List<DuplicateMatch> matches = duplicateDetectionService.checkForDuplicates(
+                username, null, "Ventilator", "Evita V300", "TR8W0XB3", "BQZ-40289");
+
+        assertTrue(matches.isEmpty(),
+                "a shared device-type name with an unrelated model is not evidence of a duplicate");
+    }
+
+    /**
+     * The specific claim in the bug report: the old rule returned {@code exact: true} for these two,
+     * because a shared name scored 1.0 on its own.
+     */
+    @Test
+    @DisplayName("a shared name with a different model is never reported as an exact match")
+    void aSharedNameIsNeverAnExactMatchOnItsOwn() {
+        asset("AST-51204", "K7PM3WD1", "Infusion Pump", "Alaris GP");
+
+        List<DuplicateMatch> matches = duplicateDetectionService.checkForDuplicates(
+                username, null, "Infusion Pump", "Braun Infusomat", "ZX90QJF6", "BQZ-18866");
+
+        assertTrue(matches.stream().noneMatch(DuplicateMatch::isExact),
+                "two different pumps must never be reported as the same asset");
+    }
+
+    @Test
+    @DisplayName("the same device typed twice with a typo is still flagged on name and model")
+    void aTypoAcrossNameAndModelStillMatches() {
+        Equipment original = asset("EQ-NM-5", "SN-MRI-1", "MRI Scanner", "Signa HDxt");
+
+        List<DuplicateMatch> matches = duplicateDetectionService.checkForDuplicates(
+                username, null, "MRI Scaner", "Signa HDxt", "SN-MRI-2", "EQ-NM-6");
+
+        assertEquals(1, matches.size(), "a one-character typo in the name is exactly what this catches");
+        assertEquals(original.getId(), matches.get(0).getId());
+        assertEquals("NAME_MODEL", matches.get(0).getMatchedOn());
+    }
+
+    @Test
+    @DisplayName("an identical name and model is still an exact match")
+    void anIdenticalNameAndModelIsExact() {
+        asset("EQ-NM-7", "SN-XRAY-1", "X-Ray Unit", "Ysio Max");
+
+        List<DuplicateMatch> matches = duplicateDetectionService.checkForDuplicates(
+                username, null, "X-Ray Unit", "Ysio Max", "SN-XRAY-2", "EQ-NM-8");
+
+        assertEquals(1, matches.size());
+        assertTrue(matches.get(0).isExact(), "same name and same model is the case the rule is for");
+        assertEquals("NAME_MODEL", matches.get(0).getMatchedOn());
+    }
+
+    /**
+     * Requiring a model on both sides is the same precondition {@code findDuplicateGroups} applies
+     * when it buckets on {@code name|model}. Without it the two views contradicted each other: the
+     * entry-time warning called a pair an exact duplicate that the reconciliation list did not
+     * consider a duplicate at all.
+     */
+    @Test
+    @DisplayName("an asset with no model recorded raises no name/model warning")
+    void anAbsentModelYieldsNoNameModelOpinion() {
+        asset("AST-30915", "M2VC8NH4", "Defibrillator", null);
+
+        List<DuplicateMatch> onExistingWithoutModel = duplicateDetectionService.checkForDuplicates(
+                username, null, "Defibrillator", "Lifepak 20", "WQ73PLB9", "BQZ-62471");
+        assertTrue(onExistingWithoutModel.isEmpty(),
+                "the stored asset records no model, so there is nothing to compare a model against");
+
+        asset("AST-84402", "J5RT1YG8", "Defibrillator", "Lifepak 20");
+        List<DuplicateMatch> onIncomingWithoutModel = duplicateDetectionService.checkForDuplicates(
+                username, null, "Defibrillator", null, "XN46DKS2", "BQZ-95038");
+        assertTrue(onIncomingWithoutModel.stream()
+                        .noneMatch(match -> "NAME_MODEL".equals(match.getMatchedOn())),
+                "the asset being entered records no model either");
+    }
+
+    /** Serial number and asset code matching are untouched by this and must keep working. */
+    @Test
+    @DisplayName("serial and asset-code matching still fire for assets with no model")
+    void identifierMatchingIsUnaffected() {
+        Equipment stored = asset("EQ-NM-13", "SN-CT-7001", "CT Scanner", null);
+
+        List<DuplicateMatch> bySerial = duplicateDetectionService.checkForDuplicates(
+                username, null, "CT Scanner", null, "SN CT 7001", null);
+        assertEquals(1, bySerial.size());
+        assertEquals("SERIAL_NUMBER", bySerial.get(0).getMatchedOn());
+        assertEquals(stored.getId(), bySerial.get(0).getId());
+
+        List<DuplicateMatch> byCode = duplicateDetectionService.checkForDuplicates(
+                username, null, null, null, null, "EQ NM 13");
+        assertEquals(1, byCode.size());
+        assertEquals("ASSET_CODE", byCode.get(0).getMatchedOn());
+    }
+
+    /**
+     * The two views have to agree. This is the pair from the bug report, checked from both ends.
+     */
+    @Test
+    @DisplayName("the entry-time warning and the reconciliation list agree about name/model")
+    void bothViewsAgreeOnWhatANameModelDuplicateIs() {
+        asset("AST-11207", "H3QW7ZB5", "Ventilator", "Hamilton C6");
+        asset("BQZ-73391", "P8LF2XN6", "Ventilator", "Evita V300");
+
+        List<DuplicateGroupResponse> groups = duplicateDetectionService.findDuplicateGroups(username);
+        assertTrue(groups.isEmpty(), "the reconciliation view does not consider these a duplicate");
+
+        // A third ventilator, different again from both stored models.
+        List<DuplicateMatch> matches = duplicateDetectionService.checkForDuplicates(
+                username, null, "Ventilator", "Servo-u", "VD59TKM3", "CRY-40718");
+        assertTrue(matches.isEmpty(), "and now neither does the entry-time warning");
+    }
 }
