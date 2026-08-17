@@ -1,75 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, CornerDownLeft, ArrowUp, ArrowDown } from "lucide-react";
 import { ROUTES, PUBLIC, AUTHENTICATED } from "../../routes/routeRegistry";
+// Labels and keywords live in one module shared with the navbar console menu, so the two cannot
+// disagree about what a console is called. See pageDirectory.js for why the map moved out of here.
+import { PAGE_LABELS } from "./pageDirectory";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
-/**
- * Human-readable names + search keywords for every reachable page key.
- * Keys missing from this map fall back to a humanised version of the key,
- * so the palette keeps working when new routes are registered.
- */
-const PAGE_LABELS = {
-  landing: { label: "Home", keywords: "landing start welcome" },
-  blog: { label: "Blog", keywords: "articles news posts" },
-  careers: { label: "Careers", keywords: "jobs hiring positions apply" },
-  certificate: { label: "Certificate Generator", keywords: "certificate training completion" },
-  about: { label: "About", keywords: "company about us employers" },
-  contact: { label: "Contact", keywords: "support reach email" },
-  guidelines: { label: "Guidelines", keywords: "rules policy" },
-  help: { label: "Help Center", keywords: "help faq support" },
-  awards: { label: "Awards", keywords: "recognition honors" },
-  terms: { label: "Terms of Service", keywords: "terms legal" },
-  guides: { label: "Guides", keywords: "documentation how to" },
-  security: { label: "Security", keywords: "security overview" },
-  status: { label: "System Status", keywords: "uptime health status" },
-  "dual-range-slider": { label: "Range Slider Studio", keywords: "dual range slider filter demo" },
-  dashboard: { label: "Dashboard", keywords: "home overview" },
-  equipment: { label: "Equipment", keywords: "inventory assets list" },
-  maintenance: { label: "Maintenance Schedule", keywords: "maintenance calendar plan" },
-  analytics: { label: "Analytics", keywords: "reports insights statistics" },
-  "add-equipment": { label: "Add Equipment", keywords: "new asset create" },
-  "schedule-maintenance": { label: "Schedule Maintenance", keywords: "new maintenance plan" },
-  "request-equipment": { label: "Request Equipment", keywords: "purchase order request" },
-  "maintenance-rules": { label: "Preventive Maintenance Rules", keywords: "pm rules automation" },
-  "sla-dashboard": { label: "SLA Dashboard", keywords: "sla compliance service level" },
-  calibration: { label: "Calibration Hub", keywords: "calibration compliance" },
-  tasks: { label: "My Tasks", keywords: "tasks technician work orders" },
-  orders: { label: "Orders", keywords: "purchase orders supplier" },
-  "authority-security": { label: "Authority Security", keywords: "authority version revocation tokens" },
-  "sso-security": { label: "Single Sign-On", keywords: "sso saml oauth login" },
-  "rbac-security": { label: "Role-Based Access Control", keywords: "rbac roles permissions" },
-  "zerotrust-security": { label: "Zero Trust", keywords: "zt security" },
-  "saml-identity": { label: "SAML Identity", keywords: "saml idp federation" },
-  "scim-provisioning": { label: "SCIM Provisioning", keywords: "scim user provisioning" },
-  "security-governance": { label: "Security Governance", keywords: "governance policies" },
-  "mfa-security": { label: "Multi-Factor Authentication", keywords: "mfa 2fa totp authenticator" },
-  "compliance-security": { label: "Compliance", keywords: "compliance standards" },
-  "threat-detection": { label: "Threat Detection", keywords: "threats alerts" },
-  soar: { label: "SOAR", keywords: "soar orchestration automation response" },
-  "keyvault-security": { label: "Key Vault", keywords: "secrets keys certificates" },
-  "security-keyvault": { label: "Key Vault (Security)", keywords: "secrets keys vault" },
-  "dlp-privacy": { label: "DLP & Privacy", keywords: "data loss prevention privacy" },
-  passkeys: { label: "Passkeys", keywords: "passkey webauthn fido" },
-  ztna: { label: "ZTNA", keywords: "zero trust network access" },
-  microsegmentation: { label: "Microsegmentation", keywords: "segmentation network" },
-  "siem-analytics": { label: "SIEM Analytics", keywords: "siem logs security events" },
-  "grc-compliance": { label: "GRC Compliance", keywords: "governance risk compliance" },
-  "security-posture": { label: "Security Posture", keywords: "posture score" },
-  "security-commandcenter": { label: "Security Command Center", keywords: "command center soc" },
-  vulnerability: { label: "Vulnerability Management", keywords: "vulnerabilities cve scan" },
-  "security-vulnerability": { label: "Vulnerability Scan", keywords: "vulnerabilities cve" },
-  pam: { label: "Privileged Access Management", keywords: "pam privileged credentials" },
-  sbom: { label: "SBOM", keywords: "software bill of materials supply chain" },
-  cspm: { label: "CSPM", keywords: "cloud security posture" },
-  "threat-intelligence": { label: "Threat Intelligence", keywords: "threat intel ioc" },
-  "security-threat": { label: "Threats", keywords: "threats attacks" },
-  "security-observability": { label: "Observability", keywords: "telemetry monitoring" },
-  "security-playbook": { label: "Security Playbooks", keywords: "playbook automation" },
-  "incident-response": { label: "Incident Response", keywords: "incidents response ir" },
-  "compliance-evidence": { label: "Compliance Evidence", keywords: "evidence audits" },
-  "compliance-reporting": { label: "Compliance Reporting", keywords: "reports audits" },
-};
 
 /**
  * Pages that should never appear as palette destinations: auth screens, the
