@@ -246,11 +246,16 @@ export default function DentalOralHub() {
     const inProgress = chairs.filter((c) => c.progress < 100).length;
     const ready = sterile.filter((s) => s.status === "Ready").length;
     const reprocessing = sterile.filter((s) => s.status === "In reprocessing").length;
-    const implants = implants.filter((im) => im.id.startsWith("IM")).length;
+    // The count is named separately from the list it is counted from. `const implants` here shadowed
+    // the state of the same name for the whole block, so every filter to the right of it read the
+    // half-initialised local instead of the list: "Cannot access 'implants' before initialization",
+    // thrown on first render, taking the page with it.
+    const fixtures = implants.filter((im) => im.id.startsWith("IM"));
+    const implantCount = fixtures.length;
     const ortho = implants.filter((im) => im.id.startsWith("OR")).length;
     const readyAbut = implants.filter((im) => im.status === "Ready for abutment").length;
-    const avgTorque = Math.round(implants.filter((im) => im.id.startsWith("IM")).reduce((a, im) => a + im.torque, 0) / Math.max(1, implants.filter((im) => im.id.startsWith("IM")).length));
-    return { emergency, inProgress, ready, reprocessing, implants, ortho, readyAbut, avgTorque };
+    const avgTorque = Math.round(fixtures.reduce((a, im) => a + im.torque, 0) / Math.max(1, implantCount));
+    return { emergency, inProgress, ready, reprocessing, implants: implantCount, ortho, readyAbut, avgTorque };
   }, [chairs, sterile, implants]);
 
   /* ---------------- actions ---------------- */

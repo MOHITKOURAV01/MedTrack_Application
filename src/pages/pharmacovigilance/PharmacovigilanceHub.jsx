@@ -7,6 +7,13 @@ import {
   Timer, TrendingDown, TrendingUp, User, Users, Wifi, WifiOff, Zap,
 } from "lucide-react";
 import { ExportCsvButton } from "../../components/common/ExportButton";
+// Shared primitives this console renders. The extraction into src/components/common removed the
+// page-local definitions; these imports replace them. Without them each name is a free variable and
+// the first render throws, which is what the console did before this line existed.
+import ToastTray, { useToastTray } from "../../components/common/ToastTray";
+import { PageHeader, Footer } from "../../components/common/PageHeader";
+import { SectionHeader, PanelHeader } from "../../components/common/SectionHeader";
+import { downloadCsv } from "../../utils/csv";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.

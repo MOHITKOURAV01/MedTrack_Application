@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, AlertTriangle, Award, Bell, CalendarDays, CheckCircle2, ChevronRight,
-  ClipboardList, Clock, Download, Eye, FileText, Filter, FlaskConical, HeartPulse,
+  ClipboardList, Clock, Download, Eye, FileText, Filter, FlaskConical, Gauge, HeartPulse,
   Home, Info, Layers, Mail, MessageSquare, Pause, Phone, Play, Plus, RefreshCw,
   Search, ShieldCheck, Siren, SlidersHorizontal, Sparkles, Stethoscope, Syringe,
   Target, Timer, TrendingDown, TrendingUp, User, Users, X, Zap,

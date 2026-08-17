@@ -42,6 +42,19 @@ import SurgicalRoboticsHub from "../../pages/surgical/SurgicalRoboticsHub";
 import LabAutomationHub from "../../pages/lab/LabAutomationHub";
 import PharmacovigilanceHub from "../../pages/pharmacovigilance/PharmacovigilanceHub";
 
+// The second wave: consoles merged after the first restoration, which arrived with the same missing
+// imports and, in one case, a shadowed `const` that threw before its own initialiser finished.
+import RegulatoryAuditProvenanceHub from "../../pages/audit/RegulatoryAuditProvenanceHub";
+import BehavioralHealthHub from "../../pages/behavioral/BehavioralHealthHub";
+import DentalOralHub from "../../pages/dental/DentalOralHub";
+import PatientEhrAnalyticsHub from "../../pages/ehr/PatientEhrAnalyticsHub";
+import ClinicalNlpSubsystemHub from "../../pages/nlp/ClinicalNlpSubsystemHub";
+import PopulationHealthHub from "../../pages/pophealth/PopulationHealthHub";
+import RehabPtHub from "../../pages/rehab/RehabPtHub";
+import EnterpriseSecurityHub from "../../pages/security/EnterpriseSecurityHub";
+import TelehealthRemotePatientHub from "../../pages/telehealth/TelehealthRemotePatientHub";
+import GenomicsPrecisionHub from "../../pages/genomics/GenomicsPrecisionHub";
+
 /**
  * The thirteen consoles the extraction broke, each with the heading it renders.
  *
@@ -66,6 +79,18 @@ const CONSOLES = [
   { name: "SurgicalRoboticsHub", Component: SurgicalRoboticsHub, heading: /Surgical Robotics & OR Orchestration Hub/ },
   { name: "LabAutomationHub", Component: LabAutomationHub, heading: /Lab Automation & Diagnostics Fleet Hub/ },
   { name: "PharmacovigilanceHub", Component: PharmacovigilanceHub, heading: /Pharmacovigilance & Drug Safety Hub/ },
+
+  // the second wave
+  { name: "RegulatoryAuditProvenanceHub", Component: RegulatoryAuditProvenanceHub, heading: /Regulatory Audit & C2PA Provenance Ledger Hub/ },
+  { name: "BehavioralHealthHub", Component: BehavioralHealthHub, heading: /Behavioral Health Command/ },
+  { name: "DentalOralHub", Component: DentalOralHub, heading: /Dental & Oral Surgery/ },
+  { name: "PatientEhrAnalyticsHub", Component: PatientEhrAnalyticsHub, heading: /Patient EHR Analytics & Population Risk Profiler/ },
+  { name: "ClinicalNlpSubsystemHub", Component: ClinicalNlpSubsystemHub, heading: /Clinical NLP & Medical Narrative Extraction Subsystem/ },
+  { name: "PopulationHealthHub", Component: PopulationHealthHub, heading: /Population Health & Care Management/ },
+  { name: "RehabPtHub", Component: RehabPtHub, heading: /Rehabilitation & Physical Therapy/ },
+  { name: "EnterpriseSecurityHub", Component: EnterpriseSecurityHub, heading: /Enterprise Security & Post-Quantum KMS Subsystem/ },
+  { name: "TelehealthRemotePatientHub", Component: TelehealthRemotePatientHub, heading: /Telehealth & Remote Patient Management Hub/ },
+  { name: "GenomicsPrecisionHub", Component: GenomicsPrecisionHub, heading: /Genomics & Precision Medicine/ },
 ];
 
 // Every console drives itself from a setInterval, so the clock is faked for all of them. Without it
@@ -84,10 +109,10 @@ describe("hub consoles render", () => {
   });
 
   it("covers every console the shared-primitive extraction touched", () => {
-    // Guards the list itself. Thirteen is not a round number chosen for neatness - it is the count
-    // the production build reported, and a shrunken list would silently stop testing a console.
-    expect(CONSOLES).toHaveLength(13);
-    expect(new Set(CONSOLES.map((entry) => entry.name)).size).toBe(13);
+    // Guards the list itself. The number is not chosen for neatness - it is every console the two
+    // extraction waves touched, and a shrunken list would silently stop testing one.
+    expect(CONSOLES).toHaveLength(23);
+    expect(new Set(CONSOLES.map((entry) => entry.name)).size).toBe(23);
   });
 
   for (const { name, Component, heading } of CONSOLES) {

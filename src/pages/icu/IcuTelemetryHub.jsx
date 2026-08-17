@@ -10,6 +10,10 @@ import PlaybackControls from "../../components/common/PlaybackControls";
 import { ExportButton } from "../../components/common/ExportButton";
 import LiveStatus from "../../components/common/LiveStatus";
 import ToastStack, { useToasts } from "../../components/common/ToastStack";
+// Shared primitives this console renders. The extraction into src/components/common removed the
+// page-local definitions; these imports replace them. Without them each name is a free variable and
+// the first render throws, which is what the console did before this line existed.
+import { csvEscape, downloadCsv } from "../../utils/export";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
