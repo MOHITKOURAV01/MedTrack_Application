@@ -130,6 +130,7 @@ export const PAGE_LABELS = {
   "biomedical-ai-diagnostics": { label: "AI Diagnostics Overwatch", keywords: "ai diagnostics drift inference overwatch model monitoring" },
   "biomedical-ai-governance": { label: "Biomedical AI Governance", keywords: "ai governance model registry approval bias validation" },
   "patient-ehr-analytics": { label: "Patient EHR Analytics", keywords: "ehr analytics readmission cohort predictive patient record" },
+  "ophthalmology-vision": { label: "Ophthalmology & Vision Diagnostics", keywords: "eye ophthalmology oct fundus retina retinopathy cataract iol biometry laser yag perimetry glaucoma" },
 
   // --- treatment and procedure consoles --------------------------------------------------------
   "cardiology-cath-lab": { label: "Cardiology & Cath Lab", keywords: "cardiology cath lab pci stent icd pacemaker hemodynamic fluoroscopy" },
@@ -211,6 +212,7 @@ export const CONSOLE_GROUPS = [
       "patient-ehr-analytics",
       "ehr-analytics-suite",
       "clinical-nlp",
+      "ophthalmology-vision",
     ],
   },
   {

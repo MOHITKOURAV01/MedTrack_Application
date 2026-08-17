@@ -111,6 +111,7 @@ const GenomicsPrecisionHub = lazy(() => import("../pages/genomics/GenomicsPrecis
 // module scope is a SyntaxError rather than a warning: the module never evaluated, so there was no
 // bundle at all. One declaration of each survives, along with the comments explaining the two that
 // are not self-evident.
+const OphthalmologyVisionHub = lazy(() => import("../pages/ophthalmology/OphthalmologyVisionHub"));
 const BiomedicalAiDiagnosticsOverwatchPage = lazy(() => import("../pages/ai/BiomedicalAiDiagnosticsOverwatchPage"));
 const BloodBankHub = lazy(() => import("../pages/bloodbank/BloodBankHub"));
 const BloodBankTransfusionHub = lazy(() => import("../pages/bloodbank/BloodBankTransfusionHub"));
@@ -323,6 +324,7 @@ export const ROUTES = [
   { page: "cardiology-cath-lab", slugs: ["cardiology-cath-lab", "cath-lab", "cardiology", "cardiology-cathlab"], component: CardiologyCathLabHub, access: AUTHENTICATED },
   { page: "icu-telemetry-overwatch", slugs: ["icu-telemetry-overwatch", "icu-overwatch"], component: ICUTelemetryOverwatchHubPage, access: AUTHENTICATED },
   { page: "pathology-digital", slugs: ["pathology-digital", "digital-pathology", "pathology"], component: PathologyDigitalHub, access: AUTHENTICATED },
+  { page: "ophthalmology-vision", slugs: ["ophthalmology-vision", "ophthalmology", "eye-unit"], component: OphthalmologyVisionHub, access: AUTHENTICATED },
   { page: "patient-ehr-analytics", slugs: ["patient-ehr-analytics", "ehr-analytics"], component: PatientEhrAnalyticsPredictivePage, access: AUTHENTICATED },
   { page: "dialysis-renal", slugs: ["dialysis-renal", "dialysis", "renal-replacement", "nephrology"], component: DialysisRenalHub, access: AUTHENTICATED },
   { page: "sterile-processing", slugs: ["sterile-processing", "cssd", "instrument-traceability"], component: SterileProcessingHub, access: AUTHENTICATED },
