@@ -7,6 +7,7 @@ import {
   Sparkles, Stethoscope, Syringe, Target, Timer, TrendingDown, TrendingUp,
   User, Users, X, Zap,
 } from "lucide-react";
+import { downloadCsv } from "../../utils/csv";
 
 /* ------------------------------------------------------------------ */
 /*  Seed data                                                          */
@@ -291,14 +292,7 @@ export default function DentalOralHub() {
       header = ["ID", "Patient", "Site / System", "Fixture / Stage", "Weeks", "Torque", "Next", "Provider", "Status"];
       rows = filteredImplants.map((im) => [im.id, im.patient, im.site || im.system, im.fixture || im.stage, im.weeks, im.torque, im.next, im.provider, im.status]);
     }
-    const csv = [header.join(","), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `dental-oral-${tab}-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`dental-oral-${tab}-${Date.now()}.csv`, [header, ...rows]);
     pushToast("Export ready", `${rows.length} rows exported to CSV.`, "info");
   };
 

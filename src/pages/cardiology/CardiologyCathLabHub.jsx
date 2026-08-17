@@ -258,7 +258,7 @@ export default function CardiologyCathLabHub() {
         : [["Monitor", "Case", "Patient", "HR", "SYS", "DIA", "MAP", "SpO2", "LVEDP", "CO", "Phase"]].concat(
             filteredHemo.map((h) => [h.id, h.caseId, h.patient, h.hr, h.sys, h.dia, h.map, h.spo2, h.lvedp, h.co, h.phase])
           );
-    downloadCsv(`cardiology-${activeTab}.csv`, rows, "text/csv;charset=utf-8;");
+    downloadCsv(`cardiology-${activeTab}.csv`, rows);
     addToast("CSV exported", "success");
   }, [activeTab, filteredSchedule, filteredDevices, filteredHemo, addToast]);
 

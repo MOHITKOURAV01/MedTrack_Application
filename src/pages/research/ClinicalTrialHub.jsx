@@ -15,7 +15,7 @@ import ToastStack, { useToasts } from "../../components/common/ToastStack";
 // page-local definitions; these imports replace them. Without them each name is a free variable and
 // the first render throws, which is what the console did before this line existed.
 import { ProgressBar } from "../../components/common/ProgressBar";
-import { csvEscape, downloadCsv } from "../../utils/export";
+import { downloadCsv } from "../../utils/csv";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
@@ -703,11 +703,11 @@ export default function ClinicalTrialHub({ onNavigate }) {
   const handleExportCohort = useCallback(() => {
     const matched = matchCohort(PATIENT_POOL, criteria);
     setExporting(true);
-    const csv = [
-      ["id", "age", "sex", "stage", "ecog", "genotype", "pdl1", "ki67", "priorLines", "arm"].map(csvEscape).join(","),
-      ...matched.map((p) => [p.id, p.age, p.sex, p.stage, p.ecog, p.genotype, p.pdl1, p.ki67, p.priorLines, p.arm].map(csvEscape).join(",")),
-    ].join("\n");
-    downloadCsv(`medtrack-cohort-${matched.length}-patients-${Date.now()}.csv`, csv);
+    const table = [
+      ["id", "age", "sex", "stage", "ecog", "genotype", "pdl1", "ki67", "priorLines", "arm"],
+      ...matched.map((p) => [p.id, p.age, p.sex, p.stage, p.ecog, p.genotype, p.pdl1, p.ki67, p.priorLines, p.arm]),
+    ];
+    downloadCsv(`medtrack-cohort-${matched.length}-patients-${Date.now()}.csv`, table);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Cohort exported", `${matched.length} patients matched current criteria and written to CSV`, "low");
@@ -720,16 +720,16 @@ export default function ClinicalTrialHub({ onNavigate }) {
     const header = activeTab === "trials"
       ? ["id", "title", "phase", "status", "sponsor", "sites", "target", "enrolled", "endpoint", "biomarkers"]
       : ["id", "gene", "name", "assay", "expression", "foldChange", "pValue", "qValue", "direction", "relevance"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    const table = [
+      header,
       ...rows.map((r) =>
         (activeTab === "trials"
           ? [r.id, r.title, r.phase, r.status, r.sponsor, r.sites, r.target, r.enrolled, r.endpoint, r.biomarkers.join(" | ")]
           : [r.id, r.gene, r.name, r.assay, r.expression, r.foldChange, r.pValue, r.qValue, r.direction, r.relevance]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-research-${activeTab}-${Date.now()}.csv`, csv);
+    ];
+    downloadCsv(`medtrack-research-${activeTab}-${Date.now()}.csv`, table);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");

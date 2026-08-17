@@ -361,7 +361,11 @@ export default function EquipmentList({ onNavigate }) {
   // so the client-side parse normalises .xlsx/.xls/.csv before upload.
   const buildUploadFile = () => {
     const originalName = importFile ? importFile.name.replace(/\.(csv|xlsx|xls)$/i, "") : "equipment";
-    return new File([rowsToCsv(parsedRows)], `${originalName}.csv`, {
+    // formulaSafe: false - this file goes to the import endpoint, not to a spreadsheet. The
+    // anti-formula apostrophe is not interpreted by a CSV parser, so leaving the guard on would
+    // store it as part of the value and every equipment code beginning with a dash would arrive one
+    // character longer than the user typed it.
+    return new File([rowsToCsv(parsedRows, { formulaSafe: false })], `${originalName}.csv`, {
       type: "text/csv",
     });
   };

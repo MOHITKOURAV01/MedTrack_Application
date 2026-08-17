@@ -297,7 +297,7 @@ export default function BloodBankHub() {
         : [["Reaction", "Patient", "Type", "Severity", "Phase", "Onset", "TempRise"]].concat(
             filteredReactions.map((r) => [r.id, r.patient, r.type, r.severity, r.phase, r.onset, r.tempRise])
           );
-    downloadCsv(`blood-bank-${activeTab}.csv`, rows, "text/csv;charset=utf-8;");
+    downloadCsv(`blood-bank-${activeTab}.csv`, rows);
     addToast("CSV exported", "success");
   }, [activeTab, filteredUnits, filteredOrders, filteredReactions, addToast]);
 

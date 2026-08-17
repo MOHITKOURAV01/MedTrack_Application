@@ -15,7 +15,7 @@ import ToastStack, { useToasts } from "../../components/common/ToastStack";
 // Shared primitives this console renders. The extraction into src/components/common removed the
 // page-local definitions; these imports replace them. Without them each name is a free variable and
 // the first render throws, which is what the console did before this line existed.
-import { csvEscape, downloadCsv } from "../../utils/export";
+import { downloadCsv } from "../../utils/csv";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
@@ -703,16 +703,16 @@ export default function ClinicalAIHub({ onNavigate }) {
     const header = activeTab === "risk"
       ? ["id", "name", "mrn", "ward", "bed", "diagnosis", "hr", "rr", "spo2", "sbp", "temp", "glucose", "acuity"]
       : ["id", "patient", "mrn", "study", "modality", "confidence", "status", "priority"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    const table = [
+      header,
       ...rows.map((r) =>
         (activeTab === "risk"
           ? [r.id, r.name, r.mrn, r.ward, r.bed, r.diagnosis, r.vitals.hr, r.vitals.rr, r.vitals.spo2, r.vitals.sbp, r.vitals.temp, r.vitals.glucose, computeRisk(r, overrides)]
           : [r.id, r.patientName, r.mrn, r.study, r.modality, r.confidence.toFixed(3), r.status, r.priority]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-${activeTab}-export-${Date.now()}.csv`, csv);
+    ];
+    downloadCsv(`medtrack-${activeTab}-export-${Date.now()}.csv`, table);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");

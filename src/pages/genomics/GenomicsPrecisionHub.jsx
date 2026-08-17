@@ -7,6 +7,7 @@ import {
   Sparkles, Stethoscope, Syringe, Target, Timer, TrendingDown, TrendingUp,
   User, Users, X, Zap,
 } from "lucide-react";
+import { downloadCsv } from "../../utils/csv";
 
 /* ------------------------------------------------------------------ */
 /*  Seed data                                                          */
@@ -283,14 +284,7 @@ export default function GenomicsPrecisionHub() {
       header = ["Case ID", "Patient", "Panel", "Syndrome / Tumor board", "Risk", "Cascade", "Next", "Status"];
       rows = filteredHered.map((h) => [h.id, h.patient, h.panel, h.syndrome || h.tb, h.risk, h.cascade, h.next, h.status]);
     }
-    const csv = [header.join(","), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `genomics-precision-${tab}-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`genomics-precision-${tab}-${Date.now()}.csv`, [header, ...rows]);
     pushToast("Export ready", `${rows.length} rows exported to CSV.`, "info");
   };
 

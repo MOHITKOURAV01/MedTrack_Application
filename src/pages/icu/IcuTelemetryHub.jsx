@@ -13,7 +13,7 @@ import ToastStack, { useToasts } from "../../components/common/ToastStack";
 // Shared primitives this console renders. The extraction into src/components/common removed the
 // page-local definitions; these imports replace them. Without them each name is a free variable and
 // the first render throws, which is what the console did before this line existed.
-import { csvEscape, downloadCsv } from "../../utils/export";
+import { downloadCsv } from "../../utils/csv";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
@@ -710,18 +710,18 @@ export default function IcuTelemetryHub({ onNavigate }) {
       : activeTab === "alerts"
         ? ["id", "severity", "title", "body", "ref", "assignedTo", "acknowledged"]
         : ["id", "name", "mrn", "room", "acuity", "hr", "rr", "spo2", "sbp", "temp", "etco2"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    const table = [
+      header,
       ...rows.map((r) =>
         (activeTab === "devices"
           ? [r.id, r.type, r.model, r.room, r.battery, r.signal, r.firmware, r.status, r.heartbeatMin]
           : activeTab === "alerts"
             ? [r.id, r.severity, r.title, r.body, r.refLabel, r.assignedTo, r.acknowledged]
             : [r.id, r.name, r.mrn, r.room, r.acuity, r.vitals.hr, r.vitals.rr, r.vitals.spo2, r.vitals.sbp, r.vitals.temp, r.vitals.etco2]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-icu-${activeTab}-${Date.now()}.csv`, csv);
+    ];
+    downloadCsv(`medtrack-icu-${activeTab}-${Date.now()}.csv`, table);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");

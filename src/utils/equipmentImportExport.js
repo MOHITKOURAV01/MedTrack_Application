@@ -306,9 +306,30 @@ const normalizeDateValue = (value) => {
   return parseDateText(text) ?? text;
 };
 
-/** Escapes one CSV field per RFC 4180 (quotes, commas, newlines). */
-const escapeCsvField = (value) => {
-  const text = value === null || value === undefined ? "" : String(value);
+/**
+ * Spreadsheet formula triggers and the numeric exemption. Both mirror src/utils/csv.js, which
+ * carries the reasoning; they are restated rather than imported because this module is also the
+ * serialiser for the upload path and has to be readable without following a second file.
+ */
+const FORMULA_TRIGGERS = /^[=+\-@\t\r]/;
+const NUMERIC_FIELD = /^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/;
+
+/**
+ * Escapes one CSV field per RFC 4180 (quotes, commas, newlines), and optionally neutralises a
+ * spreadsheet formula.
+ *
+ * Only fields that need quoting get quoted here, unlike src/utils/csv.js which quotes everything.
+ * The difference is deliberate and is not cosmetic: this serialiser's output is also uploaded to the
+ * import endpoint, and the fixture files and backend tests are written against the minimal form.
+ *
+ * @param {*} value
+ * @param {boolean} formulaSafe  prefix a leading =, +, -, @, tab or CR with a single quote
+ */
+const escapeCsvField = (value, formulaSafe) => {
+  let text = value === null || value === undefined ? "" : String(value);
+  if (formulaSafe && FORMULA_TRIGGERS.test(text) && !NUMERIC_FIELD.test(text)) {
+    text = `'${text}`;
+  }
   if (/[",\n\r]/.test(text)) {
     return '"' + text.replace(/"/g, '""') + '"';
   }
@@ -318,12 +339,26 @@ const escapeCsvField = (value) => {
 /**
  * Serialises parsed rows into the canonical CSV the backend imports.
  * A UTF-8 BOM is prepended so Excel on Windows reads non-ASCII names correctly.
+ *
+ * `formulaSafe` defaults to true because the overwhelmingly common case is a file a human opens in
+ * Excel, and a security control should be on unless someone asks for it to be off.
+ *
+ * The one caller that asks is the import path. EquipmentList re-serialises the parsed rows and posts
+ * them to the preview endpoint, and there the guard would be actively harmful: the apostrophe is not
+ * interpreted by a CSV parser, so it would be stored as part of the value and every equipment code
+ * beginning with a dash would arrive at the backend one character longer than the user typed.
+ * Formula injection is a property of spreadsheets, not of CSV, so the mitigation belongs only on the
+ * paths that end in one.
+ *
+ * @param {Array<object>} rows
+ * @param {object} options  `{ formulaSafe: false }` for a CSV bound for a parser
  */
-export const rowsToCsv = (rows) => {
-  const lines = [IMPORT_HEADERS.map(escapeCsvField).join(",")];
+export const rowsToCsv = (rows, options = {}) => {
+  const { formulaSafe = true } = options;
+  const lines = [IMPORT_HEADERS.map((header) => escapeCsvField(header, formulaSafe)).join(",")];
   rows.forEach((row) => {
     lines.push(
-      IMPORT_HEADERS.map((header) => escapeCsvField(row[header])).join(",")
+      IMPORT_HEADERS.map((header) => escapeCsvField(row[header], formulaSafe)).join(",")
     );
   });
   return "\uFEFF" + lines.join("\r\n");

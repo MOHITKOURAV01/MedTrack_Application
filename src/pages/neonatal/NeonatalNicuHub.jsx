@@ -244,7 +244,7 @@ export default function NeonatalNicuHub() {
         : [["KC", "Infant", "Parent", "Session", "Scheduled", "Status", "Benefit"]].concat(
             filteredKangaroo.map((k) => [k.id, k.infant, k.parent, k.session, k.scheduled, k.status, k.benefit])
           );
-    downloadCsv(`nicu-${activeTab}.csv`, rows, "text/csv;charset=utf-8;");
+    downloadCsv(`nicu-${activeTab}.csv`, rows);
     addToast("CSV exported", "success");
   }, [activeTab, filteredIncubators, filteredFeeding, filteredKangaroo, addToast]);
 

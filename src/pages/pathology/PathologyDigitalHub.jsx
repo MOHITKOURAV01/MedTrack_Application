@@ -262,7 +262,7 @@ export default function PathologyDigitalHub() {
         : [["Panel", "Case", "Target", "Panel", "Method", "Status", "Score", "QC", "TAT(h)"]].concat(
             filteredPanels.map((p) => [p.id, p.caseId, p.target, p.panel, p.method, p.status, p.score || "—", p.qc, p.tatHours])
           );
-    downloadCsv(`pathology-${activeTab}.csv`, rows, "text/csv;charset=utf-8;");
+    downloadCsv(`pathology-${activeTab}.csv`, rows);
     addToast("CSV exported", "success");
   }, [activeTab, filteredCases, filteredGross, filteredPanels, addToast]);
 
