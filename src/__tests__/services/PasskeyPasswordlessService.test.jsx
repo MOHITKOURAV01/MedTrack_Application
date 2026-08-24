@@ -33,7 +33,7 @@ import {
   initiatePasskeyRegistration,
   revokePasskey,
   updatePasskeyPolicy,
-} from "../../../services/PasskeyPasswordlessService";
+} from "../../services/PasskeyPasswordlessService";
 
 describe("PasskeyPasswordlessService", () => {
   it("getRegisteredPasskeys returns passkey list", async () => {

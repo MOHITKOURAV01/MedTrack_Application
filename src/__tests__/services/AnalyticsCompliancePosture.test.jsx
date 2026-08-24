@@ -21,9 +21,9 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getHospitalAnalytics } from "../../../services/AnalyticsService";
-import { getActiveConfig, updateConfig, generateComplianceReport, getAllReportLogs } from "../../../services/ComplianceReportingService";
-import { getActivePolicy, updatePolicy, runPostureEvaluation, recordPostureCheck, getAllEvaluations, getAllControlAssessments } from "../../../services/SecurityPostureService";
+import { getHospitalAnalytics } from "../../services/AnalyticsService";
+import { getActiveConfig, updateConfig, generateComplianceReport, getAllReportLogs } from "../../services/ComplianceReportingService";
+import { getActivePolicy, updatePolicy, runPostureEvaluation, recordPostureCheck, getAllEvaluations, getAllControlAssessments } from "../../services/SecurityPostureService";
 
 describe("AnalyticsService", () => {
   it("getHospitalAnalytics returns analytics data", async () => {

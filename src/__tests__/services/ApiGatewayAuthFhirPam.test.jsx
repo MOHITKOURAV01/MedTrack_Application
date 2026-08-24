@@ -32,10 +32,10 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getApiRoutes, onboardApiRoute, auditApiRouteOwasp } from "../../../services/ApiGatewaySecurityService";
-import { registerUser, loginUser, forgotPassword, verifyOtp, resetPassword, getAuthorityVersion, incrementAuthorityVersion, bumpGlobalAuthorityVersion, getAuthorityAuditLogs } from "../../../services/AuthService";
-import { getFhirResources, registerFhirResource, auditSmartScopes } from "../../../services/FhirEhrSecurityService";
-import { getActivePolicy, updatePolicy, createAccessRequest, approveRequest, recordSessionLog, getAllRequests, getAllSessionLogs } from "../../../services/PamService";
+import { getApiRoutes, onboardApiRoute, auditApiRouteOwasp } from "../../services/ApiGatewaySecurityService";
+import { registerUser, loginUser, forgotPassword, verifyOtp, resetPassword, getAuthorityVersion, incrementAuthorityVersion, bumpGlobalAuthorityVersion, getAuthorityAuditLogs } from "../../services/AuthService";
+import { getFhirResources, registerFhirResource, auditSmartScopes } from "../../services/FhirEhrSecurityService";
+import { getActivePolicy, updatePolicy, createAccessRequest, approveRequest, recordSessionLog, getAllRequests, getAllSessionLogs } from "../../services/PamService";
 
 describe("ApiGatewaySecurityService", () => {
   it("getApiRoutes returns routes", async () => { const d = await getApiRoutes(); expect(d).toHaveLength(1); expect(d[0].path).toBe("/api/patients"); });

@@ -173,7 +173,10 @@ describe("ZeroTrustGovernanceService", () => {
       const policies = await governanceSvc.getGovernancePolicies();
       expect(Array.isArray(policies)).toBe(true);
       expect(policies.length).toBeGreaterThan(0);
-      expect(policies[0]).toHaveProperty("name");
+      // The fallback is the service's own seeded registry, which keys on
+      // policyId/policyName rather than the id/name the mocked API returns.
+      expect(policies[0]).toHaveProperty("policyName");
+      expect(policies[0].policyId).toContain("POL-ZT-");
     });
   });
 
@@ -188,11 +191,54 @@ describe("ZeroTrustGovernanceService", () => {
       server.use(
         http.post(`${BASE_URL}/api/auth/ztna/governance/policies`, () => HttpResponse.json(null, { status: 500 }))
       );
-      const result = await governanceSvc.createGovernancePolicy({ name: "Fallback" });
-      expect(result).toHaveProperty("id");
-      expect(result).toHaveProperty("status");
+      const result = await governanceSvc.createGovernancePolicy({ policyName: "Fallback" });
+      expect(result.policyId).toContain("POL-ZT-");
+      expect(result).toHaveProperty("status", "ACTIVE");
+      // The fallback echoes the caller's name rather than inventing one.
+      expect(result.policyName).toBe("Fallback");
     });
   });
 
   describe("getActiveTrustEvaluations", () => {
-   
+    it("fetches active trust evaluations", async () => {
+      const evaluations = await governanceSvc.getActiveTrustEvaluations();
+      expect(Array.isArray(evaluations)).toBe(true);
+      expect(evaluations[0].verdict).toBe("COMPLIANT");
+      expect(evaluations[0].score).toBe(92);
+    });
+
+    it("returns fallback on API failure", async () => {
+      server.use(
+        http.get(`${BASE_URL}/api/auth/ztna/governance/evaluations`, () => HttpResponse.json(null, { status: 500 }))
+      );
+      const evaluations = await governanceSvc.getActiveTrustEvaluations();
+      expect(Array.isArray(evaluations)).toBe(true);
+      expect(evaluations.length).toBeGreaterThan(0);
+      expect(evaluations[0]).toHaveProperty("verdict");
+    });
+  });
+
+  describe("evaluateTrustSimulation", () => {
+    it("runs a trust simulation", async () => {
+      const result = await governanceSvc.evaluateTrustSimulation({ subject: "nurse@medtrack.org" });
+      expect(result).toHaveProperty("score", 78);
+      expect(result).toHaveProperty("verdict", "NEEDS_IMPROVEMENT");
+      expect(result.recommendations).toContain("Enable MFA");
+    });
+
+    it("returns fallback on API failure", async () => {
+      server.use(
+        http.post(`${BASE_URL}/api/auth/ztna/governance/simulate`, () => HttpResponse.json(null, { status: 500 }))
+      );
+      const result = await governanceSvc.evaluateTrustSimulation({
+        devicePosture: "COMPLIANT_MDM",
+        networkTrust: "INTERNAL_VPC",
+        behaviorScore: 90,
+      });
+      // 50 base + 25 compliant MDM + 15 internal VPC + 10 behaviour above 80.
+      expect(result.simulatedTrustScore).toBe(100);
+      expect(result.verdict).toBe("ACCESS_GRANTED");
+      expect(result.evaluationFactors.devicePostureBonus).toBe("+25");
+    });
+  });
+});

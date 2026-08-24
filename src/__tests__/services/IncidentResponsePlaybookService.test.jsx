@@ -36,7 +36,7 @@ import {
   getActiveIrIncidents,
   executePlaybook,
   exportForensicPackage,
-} from "../../../services/IncidentResponsePlaybookService";
+} from "../../services/IncidentResponsePlaybookService";
 
 describe("IncidentResponsePlaybookService", () => {
   it("getIncidentPlaybooks returns playbook list", async () => {

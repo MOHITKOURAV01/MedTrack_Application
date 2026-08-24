@@ -26,10 +26,10 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getActiveSdpTunnels, getMicrosegmentPolicies, evaluateDevicePosture, terminateSdpTunnel } from "../../../services/ZeroTrustNetworkService";
-import { getGovernancePolicies, createGovernancePolicy, getActiveTrustEvaluations, evaluateTrustSimulation } from "../../../services/ZeroTrustGovernanceService";
-import { getDlpRules, getDlpIncidents, toggleDlpRule, simulateTextMasking } from "../../../services/DlpPrivacyGuardService";
-import { getGrcFrameworkScores, getAuditEvidenceLedger, evaluateControlEvidence, generateComplianceReport } from "../../../services/GrcAuditComplianceService";
+import { getActiveSdpTunnels, getMicrosegmentPolicies, evaluateDevicePosture, terminateSdpTunnel } from "../../services/ZeroTrustNetworkService";
+import { getGovernancePolicies, createGovernancePolicy, getActiveTrustEvaluations, evaluateTrustSimulation } from "../../services/ZeroTrustGovernanceService";
+import { getDlpRules, getDlpIncidents, toggleDlpRule, simulateTextMasking } from "../../services/DlpPrivacyGuardService";
+import { getGrcFrameworkScores, getAuditEvidenceLedger, evaluateControlEvidence, generateComplianceReport } from "../../services/GrcAuditComplianceService";
 
 describe("ZeroTrustNetworkService", () => {
   it("getActiveSdpTunnels returns tunnels", async () => {

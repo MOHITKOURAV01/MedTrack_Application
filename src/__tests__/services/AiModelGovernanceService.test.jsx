@@ -26,7 +26,7 @@ import {
   registerAiModel,
   runFairnessAudit,
   getEuAiActCategories,
-} from "../../../services/AiModelGovernanceService";
+} from "../../services/AiModelGovernanceService";
 
 describe("AiModelGovernanceService", () => {
   it("getAiModels returns model list", async () => {
