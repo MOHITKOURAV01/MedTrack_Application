@@ -11,6 +11,9 @@ import { downloadCsv } from "../../utils/csv";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
+import ToastTray, { useToastTray } from "../../components/common/ToastTray";
+import { PageHeader, Footer } from "../../components/common/PageHeader";
+import { SectionHeader, PanelHeader } from "../../components/common/SectionHeader";
 import { CompactStatCard as StatCard } from "../../components/common/StatCard";
 import { CompactSearch } from "../../components/common/SearchBox";
 import { FilterChips } from "../../components/common/FilterChips";
