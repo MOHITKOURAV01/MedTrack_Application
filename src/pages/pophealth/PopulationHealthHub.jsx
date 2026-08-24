@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity, AlertTriangle, Award, Bell, CalendarDays, CheckCircle2, ChevronRight,
   ClipboardList, Clock, Download, Eye, FileText, Filter, FlaskConical, HeartPulse,
-  Home, Info, Layers, Mail, MessageSquare, Pause, Phone, Play, Plus, RefreshCw,
+  Gauge, Home, Info, Layers, Mail, MessageSquare, Pause, Phone, Play, Plus, RefreshCw,
   Search, ShieldCheck, Siren, SlidersHorizontal, Sparkles, Stethoscope, Syringe,
   Target, Timer, TrendingDown, TrendingUp, User, Users, X, Zap,
 } from "lucide-react";
+import { downloadCsv } from "../../utils/csv";
 
 /* ------------------------------------------------------------------ */
 /*  Seed data                                                          */
@@ -284,14 +285,7 @@ export default function PopulationHealthHub() {
       header = ["Ref ID", "Patient ID", "Name", "Domain", "Need", "Risk", "Partner", "Status", "Updated"];
       rows = filteredSdoh.map((s) => [s.id, s.patient, s.name, s.domain, s.need, s.risk, s.partner, s.status, s.updated]);
     }
-    const csv = [header.join(","), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `population-health-${tab}-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`population-health-${tab}-${Date.now()}.csv`, [header, ...rows]);
     pushToast("Export ready", `${rows.length} rows exported to CSV.`, "info");
   };
 

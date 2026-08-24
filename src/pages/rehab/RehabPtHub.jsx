@@ -7,6 +7,7 @@ import {
   Sparkles, Stethoscope, Syringe, Target, Timer, TrendingDown, TrendingUp,
   User, Users, X, Zap,
 } from "lucide-react";
+import { downloadCsv } from "../../utils/csv";
 
 /* ------------------------------------------------------------------ */
 /*  Seed data                                                          */
@@ -286,14 +287,7 @@ export default function RehabPtHub() {
       header = ["HEP ID", "Name", "Plan", "Sets", "Reps", "Completed", "Pain VAS", "Engagement %", "Next due", "Status"];
       rows = filteredHep.map((h) => [h.id, h.name, h.plan, h.sets, h.reps, h.done, h.pain, h.engagement, h.nextDue, h.status]);
     }
-    const csv = [header.join(","), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `rehab-pt-${tab}-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`rehab-pt-${tab}-${Date.now()}.csv`, [header, ...rows]);
     pushToast("Export ready", `${rows.length} rows exported to CSV.`, "info");
   };
 

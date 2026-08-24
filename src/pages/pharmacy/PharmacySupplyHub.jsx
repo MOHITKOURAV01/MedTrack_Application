@@ -13,6 +13,7 @@ import { ExportButton } from "../../components/common/ExportButton";
 import LiveStatus from "../../components/common/LiveStatus";
 import ToastStack, { useToasts } from "../../components/common/ToastStack";
 import { downloadCsv } from "../../utils/csv";
+import { ProgressBar } from "../../components/common/ProgressBar";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
@@ -630,18 +631,17 @@ export default function PharmacySupplyHub({ onNavigate }) {
       : activeTab === "orders"
         ? ["id", "vendor", "status", "lines", "value", "urgent", "items"]
         : ["id", "name", "type", "location", "temp", "humidity", "rangeMin", "rangeMax", "status"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    downloadCsv(`medtrack-pharmacy-${activeTab}-${Date.now()}.csv`, [
+      header,
       ...rows.map((r) =>
         (activeTab === "inventory"
           ? [r.id, r.ndc, r.name, r.category, r.form, r.controlled, r.storage, r.onHand, r.parLevel, r.reorderPoint, r.unitCost, r.abc]
           : activeTab === "orders"
             ? [r.id, r.vendor, r.status, r.lines, r.value, r.urgent, r.items.join(" | ")]
             : [r.id, r.name, r.type, r.location, r.temp, r.humidity, r.rangeMin, r.rangeMax, storageState(r)]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-pharmacy-${activeTab}-${Date.now()}.csv`, csv);
+    ]);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");

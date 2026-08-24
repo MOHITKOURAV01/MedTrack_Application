@@ -7,6 +7,7 @@ import {
   Sparkles, Stethoscope, Syringe, Target, Timer, TrendingDown, TrendingUp,
   User, Users, X, Zap,
 } from "lucide-react";
+import { downloadCsv } from "../../utils/csv";
 
 /* ------------------------------------------------------------------ */
 /*  Seed data                                                          */
@@ -279,14 +280,7 @@ export default function BehavioralHealthHub() {
       header = ["Rx ID", "Name", "Medication", "Class", "Dose", "Adherence %", "Refill", "Controlled", "LAI", "Prescriber", "Status"];
       rows = filteredMeds.map((r) => [r.id, r.name, r.med, r.class, r.dose, r.adherence, r.refill, r.control ? "Yes" : "No", r.lai ? "Yes" : "No", r.prescriber, r.status]);
     }
-    const csv = [header.join(","), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `behavioral-health-${tab}-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`behavioral-health-${tab}-${Date.now()}.csv`, [header, ...rows]);
     pushToast("Export ready", `${rows.length} rows exported to CSV.`, "info");
   };
 
