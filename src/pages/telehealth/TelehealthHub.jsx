@@ -12,6 +12,7 @@ import { ExportButton } from "../../components/common/ExportButton";
 import LiveStatus from "../../components/common/LiveStatus";
 import ToastStack, { useToasts } from "../../components/common/ToastStack";
 import { downloadCsv } from "../../utils/csv";
+import { ProgressBar } from "../../components/common/ProgressBar";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
@@ -615,18 +616,17 @@ export default function TelehealthHub({ onNavigate }) {
       : activeTab === "adherence"
         ? ["id", "patient", "medAdherence", "apptAdherence", "tasksDone", "tasksTotal", "risk", "nextVisit"]
         : ["id", "provider", "specialty", "patient", "status", "durationMin", "device", "location", "video", "audio", "latencyMs"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    downloadCsv(`medtrack-telehealth-${activeTab}-${Date.now()}.csv`, [
+      header,
       ...rows.map((r) =>
         (activeTab === "vitals"
           ? [r.id, r.name, r.condition, r.vitals.hr, r.vitals.sbp, r.vitals.spo2, r.vitals.glucose, r.vitals.weight, r.compliance, r.flags.join(" | ")]
           : activeTab === "adherence"
             ? [r.id, r.patient, r.medAdherence, r.apptAdherence, r.tasksDone, r.tasksTotal, adherenceRisk(r), r.nextVisit]
             : [r.id, r.provider, r.specialty, r.patient, r.status, r.durationMin, r.device, r.location, r.quality.video, r.quality.audio, r.quality.latencyMs]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-telehealth-${activeTab}-${Date.now()}.csv`, csv);
+    ]);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");

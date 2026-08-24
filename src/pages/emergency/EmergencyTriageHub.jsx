@@ -12,6 +12,7 @@ import { ExportButton } from "../../components/common/ExportButton";
 import LiveStatus from "../../components/common/LiveStatus";
 import ToastStack, { useToasts } from "../../components/common/ToastStack";
 import { downloadCsv } from "../../utils/csv";
+import { ProgressBar } from "../../components/common/ProgressBar";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
@@ -656,18 +657,17 @@ export default function EmergencyTriageHub({ onNavigate }) {
       : activeTab === "routing"
         ? ["id", "unit", "origin", "dest", "etaTicks", "acuity", "lightsSirens", "status", "route"]
         : ["id", "name", "mrn", "esi", "chiefComplaint", "zone", "disposition", "hr", "spo2"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    downloadCsv(`medtrack-ems-${activeTab}-${Date.now()}.csv`, [
+      header,
       ...rows.map((r) =>
         (activeTab === "beds"
           ? [r.id, r.name, r.type, r.total, r.occupied, r.boarding, r.predictedDemand]
           : activeTab === "routing"
             ? [r.id, r.unit, r.origin, r.dest, r.etaTicks, r.acuity, r.lightsSirens, r.status, r.route]
             : [r.id, r.name, r.mrn, r.esi, r.chiefComplaint, r.zone, r.disposition, r.vitals.hr, r.vitals.spo2]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-ems-${activeTab}-${Date.now()}.csv`, csv);
+    ]);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");

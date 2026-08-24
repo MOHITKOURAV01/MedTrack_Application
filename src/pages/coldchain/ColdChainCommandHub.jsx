@@ -13,6 +13,7 @@ import { ExportButton } from "../../components/common/ExportButton";
 import LiveStatus from "../../components/common/LiveStatus";
 import ToastStack, { useToasts } from "../../components/common/ToastStack";
 import { downloadCsv } from "../../utils/csv";
+import { ProgressBar } from "../../components/common/ProgressBar";
 // The shared primitives this console renders. They were page-local components until the
 // extraction into src/components/common; the local definitions were removed then, but these
 // imports were never added, so every identifier below was a ReferenceError at first render.
@@ -928,8 +929,8 @@ export default function ColdChainCommandHub({ onNavigate }) {
           : activeTab === "arrhenius"
             ? ["id", "unit", "product", "startTick", "elapsed", "maxTemp", "ea", "lossPct", "impact"]
             : ["id", "name", "model", "location", "temp", "rangeMin", "rangeMax", "humidity", "co2", "battery", "status"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    downloadCsv(`medtrack-cold-chain-${activeTab}-${Date.now()}.csv`, [
+      header,
       ...rows.map((r) =>
         (activeTab === "rfid"
           ? [r.id, r.product, r.serial, r.lot, r.zone, rfidState(r), r.strength.toFixed(1), r.lastRead, r.tampered]
@@ -940,10 +941,9 @@ export default function ColdChainCommandHub({ onNavigate }) {
               : activeTab === "arrhenius"
                 ? [r.id, r.unit, r.product, r.startTick, r.elapsed, r.maxTemp, r.ea, arrheniusImpact(r).lossPct.toFixed(1), arrheniusImpact(r).impact]
                 : [r.id, r.name, r.model, r.location, r.temp, r.rangeMin, r.rangeMax, r.humidity, r.co2, r.battery, cryoState(r)]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-cold-chain-${activeTab}-${Date.now()}.csv`, csv);
+    ]);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");

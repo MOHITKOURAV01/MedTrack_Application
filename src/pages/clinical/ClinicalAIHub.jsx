@@ -700,16 +700,15 @@ export default function ClinicalAIHub({ onNavigate }) {
     const header = activeTab === "risk"
       ? ["id", "name", "mrn", "ward", "bed", "diagnosis", "hr", "rr", "spo2", "sbp", "temp", "glucose", "acuity"]
       : ["id", "patient", "mrn", "study", "modality", "confidence", "status", "priority"];
-    const csv = [
-      header.map(csvEscape).join(","),
+    downloadCsv(`medtrack-${activeTab}-export-${Date.now()}.csv`, [
+      header,
       ...rows.map((r) =>
         (activeTab === "risk"
           ? [r.id, r.name, r.mrn, r.ward, r.bed, r.diagnosis, r.vitals.hr, r.vitals.rr, r.vitals.spo2, r.vitals.sbp, r.vitals.temp, r.vitals.glucose, computeRisk(r, overrides)]
           : [r.id, r.patientName, r.mrn, r.study, r.modality, r.confidence.toFixed(3), r.status, r.priority]
-        ).map(csvEscape).join(",")
+        )
       ),
-    ].join("\n");
-    downloadCsv(`medtrack-${activeTab}-export-${Date.now()}.csv`, csv);
+    ]);
     window.setTimeout(() => {
       setExporting(false);
       pushToast("Export complete", `${rows.length} rows written to CSV · audit entry logged`, "low");
