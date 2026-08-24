@@ -52,6 +52,11 @@ const pagesRoot = path.join(projectRoot, 'src', 'pages');
  *     disk as dead files.
  *   - The five procurement workflow pages are drafts: complete components, but nothing links to
  *     them yet, so they are parked here until the procurement flow is wired into navigation.
+ *   - The nine clinical consoles at the end are near-duplicates: each covers the same care area as
+ *     a console that now has a route, under a different directory and a slightly different name.
+ *     Registering all of them would put several menu entries in front of the user that open almost
+ *     identical screens, so one per care area is routed and the rest are parked here. They are
+ *     candidates for deletion once someone confirms which variant the product wants to keep.
  */
 const UNROUTED_PAGES = {
   ActivityCenter: 'rendered inline inside the Navbar (imported directly), not as a route',
@@ -63,6 +68,15 @@ const UNROUTED_PAGES = {
   RfqQuoteComparison: 'procurement workflow draft - no link reaches it yet',
   DuplicateDetection: 'procurement workflow draft - no link reaches it yet',
   ProcurementLifecycleTimeline: 'procurement workflow draft - no link reaches it yet',
+  BioAiDiagnosticsGenomicHub: 'near-duplicate of BioAiDiagnosticsHub, which serves the "bioai-diagnostics" route',
+  CardiovascularHemodynamicsOverwatchPage: 'near-duplicate of CardiovascularHemodynamicsHub, which serves "cardiovascular-hemodynamics"',
+  EmergencyTriageDisasterCommandPage: 'near-duplicate of EmergencyDisasterMciCommandHub, which serves "emergency-disaster-mci"',
+  ContinuousDialysisAkiOverwatchPage: 'near-duplicate of NephrologyCrrtHub, which serves the "nephrology-crrt" route',
+  NeuroCriticalCareIcpOverwatchPage: 'near-duplicate of NeuroIcuIcpHub, which serves the "neuro-icu-icp" route',
+  PrecisionGenomicOncologyOverwatchPage: 'near-duplicate of PrecisionOncologyHub, which serves the "precision-oncology" route',
+  PrecisionOncologyMolecularHub: 'near-duplicate of PrecisionOncologyHub, which serves the "precision-oncology" route',
+  PediatricIcuHfovCommandHub: 'near-duplicate of PediatricIcuTelemetryHub, which serves "pediatric-icu-telemetry"',
+  PediatricIcuOverwatchHub: 'near-duplicate of PediatricIcuTelemetryHub, which serves "pediatric-icu-telemetry"',
 };
 
 const failures = [];

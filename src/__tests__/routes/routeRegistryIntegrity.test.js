@@ -82,6 +82,15 @@ const UNROUTED_PAGES = [
   "RfqQuoteComparison",
   "DuplicateDetection",
   "ProcurementLifecycleTimeline",
+  "BioAiDiagnosticsGenomicHub",
+  "CardiovascularHemodynamicsOverwatchPage",
+  "EmergencyTriageDisasterCommandPage",
+  "ContinuousDialysisAkiOverwatchPage",
+  "NeuroCriticalCareIcpOverwatchPage",
+  "PrecisionGenomicOncologyOverwatchPage",
+  "PrecisionOncologyMolecularHub",
+  "PediatricIcuHfovCommandHub",
+  "PediatricIcuOverwatchHub",
 ];
 
 /** Every *.jsx page component on disk, excluding test files. */
