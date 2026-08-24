@@ -607,7 +607,7 @@ export default function PrecisionOncologyMolecularHub() {
                     {patient.tmbScore >= 10 ? ' Combined with PD-L1 expression, immune checkpoint blockade is strongly indicated.' : ' Monotherapy immune checkpoint inhibition may exhibit diminished overall response.'}
                   </p>
                   <p>
-                    <strong>DNA Damage Repair:</strong> HRD Score {patient.hrdScore} exceeds homologous recombination deficiency threshold (Score >= 42), qualifying for synthetic lethality PARP inhibition.
+                    <strong>DNA Damage Repair:</strong> HRD Score {patient.hrdScore} exceeds homologous recombination deficiency threshold (Score &gt;= 42), qualifying for synthetic lethality PARP inhibition.
                   </p>
                 </div>
               </div>
