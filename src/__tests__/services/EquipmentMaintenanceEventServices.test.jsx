@@ -33,9 +33,9 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getAllEquipment, getEquipmentById, addEquipment, deleteEquipment, getEquipmentImportHistory, getEquipmentQrCode, updateEquipment, getEquipmentLifecycle, getEquipmentTimeline } from "../../../services/EquipmentService";
-import { getAllTasks, getTaskById, scheduleTask, updateTask, deleteTask, listRules, createRule, getSlaSummary, refreshSla, getTechnicianWorkload } from "../../../services/MaintenanceService";
-import { getEvents, getUnreadCounts, markEventsAsRead, markAllEventsAsRead } from "../../../services/EventStreamService";
+import { getAllEquipment, getEquipmentById, addEquipment, deleteEquipment, getEquipmentImportHistory, getEquipmentQrCode, updateEquipment, getEquipmentLifecycle, getEquipmentTimeline } from "../../services/EquipmentService";
+import { getAllTasks, getTaskById, scheduleTask, updateTask, deleteTask, listRules, createRule, getSlaSummary, refreshSla, getTechnicianWorkload } from "../../services/MaintenanceService";
+import { getEvents, getUnreadCounts, markEventsAsRead, markAllEventsAsRead } from "../../services/EventStreamService";
 
 describe("EquipmentService", () => {
   it("getAllEquipment returns paginated list", async () => {

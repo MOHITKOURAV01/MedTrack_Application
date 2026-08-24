@@ -39,11 +39,11 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getAllPlaybooks, createPlaybook, togglePlaybookStatus, triggerPlaybook, getAllExecutionLogs } from "../../../services/SoarService";
-import { getActivePolicy, updatePolicy, triggerPlaybookExecution, recordPlaybookStep, getAllExecutions, getStepsByExecutionId } from "../../../services/SecurityPlaybookService";
-import { getActivePolicy as getKVPolicy, updatePolicy as updateKVPolicy, generateCryptoKey, rotateKey, revokeKey, getAllKeys, getAllAuditLogs } from "../../../services/SecurityKeyVaultService";
-import { getActivePolicy as getObsPolicy, updatePolicy as updateObsPolicy, ingestTelemetryStream, recordSecurityMetric, getAllStreams, getAllMetrics } from "../../../services/SecurityObservabilityService";
-import { getUnifiedSummary, getActiveConfig, updateConfig, acknowledgeAlert, getAllAlerts } from "../../../services/SecurityCommandCenterService";
+import { getAllPlaybooks, createPlaybook, togglePlaybookStatus, triggerPlaybook, getAllExecutionLogs } from "../../services/SoarService";
+import { getActivePolicy, updatePolicy, triggerPlaybookExecution, recordPlaybookStep, getAllExecutions, getStepsByExecutionId } from "../../services/SecurityPlaybookService";
+import { getActivePolicy as getKVPolicy, updatePolicy as updateKVPolicy, generateCryptoKey, rotateKey, revokeKey, getAllKeys, getAllAuditLogs } from "../../services/SecurityKeyVaultService";
+import { getActivePolicy as getObsPolicy, updatePolicy as updateObsPolicy, ingestTelemetryStream, recordSecurityMetric, getAllStreams, getAllMetrics } from "../../services/SecurityObservabilityService";
+import { getUnifiedSummary, getActiveConfig, updateConfig, acknowledgeAlert, getAllAlerts } from "../../services/SecurityCommandCenterService";
 
 describe("SoarService", () => {
   it("getAllPlaybooks returns playbooks", async () => { const data = await getAllPlaybooks(); expect(data).toHaveLength(1); expect(data[0].name).toBe("Auto Contain"); });
@@ -77,4 +77,14 @@ describe("SecurityObservabilityService", () => {
   it("updateObsPolicy updates policy", async () => { const result = await updateObsPolicy({ alertThreshold: 90 }); expect(result.success).toBe(true); });
   it("ingestTelemetryStream ingests stream", async () => { const result = await ingestTelemetryStream({ data: "log" }); expect(result.streamId).toBe("STR-NEW"); });
   it("recordSecurityMetric records metric", async () => { const result = await recordSecurityMetric({ name: "disk", value: 75 }); expect(result.metricId).toBe("MET-NEW"); });
-  it("getAllStreams returns streams", async () => { const data = await getAllStreams(); expect(data
+  it("getAllStreams returns streams", async () => { const data = await getAllStreams(); expect(data).toHaveLength(1); expect(data[0].type).toBe("SYSLOG"); });
+  it("getAllMetrics returns metrics", async () => { const data = await getAllMetrics(); expect(data).toHaveLength(1); expect(data[0].name).toBe("CPU"); });
+});
+
+describe("SecurityCommandCenterService", () => {
+  it("getUnifiedSummary returns the unified summary", async () => { const data = await getUnifiedSummary(); expect(data.totalAlerts).toBe(12); expect(data.criticalAlerts).toBe(2); });
+  it("getActiveConfig returns the dashboard config", async () => { const data = await getActiveConfig(); expect(data.dashboardRefresh).toBe(30); });
+  it("updateConfig updates the dashboard config", async () => { const result = await updateConfig({ dashboardRefresh: 60 }); expect(result.success).toBe(true); });
+  it("acknowledgeAlert acknowledges an alert", async () => { const result = await acknowledgeAlert("AL-001"); expect(result.acknowledged).toBe(true); });
+  it("getAllAlerts returns alerts", async () => { const data = await getAllAlerts(); expect(data).toHaveLength(1); expect(data[0].severity).toBe("CRITICAL"); });
+});

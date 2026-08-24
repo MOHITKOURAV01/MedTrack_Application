@@ -27,7 +27,7 @@ import {
   createDeidentificationJob,
   redactSampleText,
   getSafeHarborChecklist,
-} from "../../../services/HipaaDeidentificationService";
+} from "../../services/HipaaDeidentificationService";
 
 describe("HipaaDeidentificationService", () => {
   it("getDeidentificationJobs returns job list", async () => {

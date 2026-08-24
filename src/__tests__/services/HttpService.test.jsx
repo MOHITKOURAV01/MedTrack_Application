@@ -1,16 +1,20 @@
-import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from "vitest";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+
 const BASE_URL = "http://localhost:8081";
-const server = setupServer(
-  http.get(, () => HttpResponse.json({ ok: true })),
-);
+
+// Every test installs the handler it needs with server.use(); the server starts
+// with none. It previously started with `http.get(, ...)` - a handler with no
+// URL - which is a syntax error and stopped the whole file from being collected.
+const server = setupServer();
+
 const mockAlert = vi.fn();
+const originalHref = "http://localhost:8081";
+
 beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
-beforeEach(() => { sessionStorage.clear(); vi.stubGlobal("alert", mockAlert); });
-afterEach(() => { vi.unstubAllGlobals(); });
 
 beforeEach(() => {
   sessionStorage.clear();
@@ -21,19 +25,13 @@ beforeEach(() => {
   // carry href alone, so pathname was undefined, the base resolved to "" and the redirect assertion
   // below could never hold - that test has been red since it was written.
   vi.stubGlobal("location", {
-    href: "http://localhost:8081",
+    href: originalHref,
     pathname: "/MedTrack_Application/dashboard",
   });
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  // Restore location.href
-  Object.defineProperty(window, "location", {
-    value: { ...window.location, href: originalHref },
-    writable: true,
-    configurable: true,
-  });
 });
 
 async function getInterceptorBehavior() {
@@ -55,13 +53,9 @@ it("attaches JWT Bearer token from sessionStorage", async () => {
     }),
   );
 
-it("attaches JWT Bearer token", async () => {
-  sessionStorage.setItem("medtrack_user", JSON.stringify({ id: "u1", token: "my-jwt" }));
-  const API = await getApi();
-  let hdrs;
-  server.use(http.get(, ({ request }) => { hdrs = request.headers; return HttpResponse.json({ ok: true }); }));
   await API.get("/api/test");
-  expect(hdrs.get("Authorization")).toBe("Bearer my-jwt");
+
+  expect(capturedHeaders.get("Authorization")).toBe("Bearer my-jwt-token");
 });
 
 it("handles 401 by clearing sessionStorage, toasting and redirecting under the base path", async () => {

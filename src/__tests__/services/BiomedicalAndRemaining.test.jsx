@@ -43,15 +43,15 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getWatermarkedAiDatasets, watermarkAiDataset, verifyC2paManifest } from "../../../services/BiomedicalAiWatermarkService";
-import { getBlockchainBlocks, mineAuditBlock, verifyZkpTransaction } from "../../../services/BiomedicalBlockchainService";
-import { getDataMeshDomains, onboardDataMeshDomain, evaluateDataMeshPolicy } from "../../../services/BiomedicalDataMeshService";
-import { getResilienceIncidents, triggerFailoverCommand, runAirgapRestorationSimulation } from "../../../services/BiomedicalIncidentCommandService";
-import { getMpcVaults, provisionMpcVault, runMpcSignatureSimulation } from "../../../services/BiomedicalMpcHsmService";
-import { getSoarPlaybooks, deploySoarPlaybook, runPlaybookSimulation } from "../../../services/BiomedicalSoarService";
-import { getVerifiableCredentials, issueVerifiableCredential, verifyCredentialPresentation } from "../../../services/BiomedicalSovereignIdentityService";
-import { getActivePolicy, updatePolicy, ingestEvidenceRecord, verifyEvidenceChain, getAllRecords, getAllChainLogs } from "../../../services/ComplianceEvidenceService";
-import { getActiveFeedConfig, updateFeedConfig, ingestIndicator, triggerMitigation, getAllIndicators, getAllMitigationLogs } from "../../../services/ThreatIntelligenceService";
+import { getWatermarkedAiDatasets, watermarkAiDataset, verifyC2paManifest } from "../../services/BiomedicalAiWatermarkService";
+import { getBlockchainBlocks, mineAuditBlock, verifyZkpTransaction } from "../../services/BiomedicalBlockchainService";
+import { getDataMeshDomains, onboardDataMeshDomain, evaluateDataMeshPolicy } from "../../services/BiomedicalDataMeshService";
+import { getResilienceIncidents, triggerFailoverCommand, runAirgapRestorationSimulation } from "../../services/BiomedicalIncidentCommandService";
+import { getMpcVaults, provisionMpcVault, runMpcSignatureSimulation } from "../../services/BiomedicalMpcHsmService";
+import { getSoarPlaybooks, deploySoarPlaybook, runPlaybookSimulation } from "../../services/BiomedicalSoarService";
+import { getVerifiableCredentials, issueVerifiableCredential, verifyCredentialPresentation } from "../../services/BiomedicalSovereignIdentityService";
+import { getActivePolicy, updatePolicy, ingestEvidenceRecord, verifyEvidenceChain, getAllRecords, getAllChainLogs } from "../../services/ComplianceEvidenceService";
+import { getActiveFeedConfig, updateFeedConfig, ingestIndicator, triggerMitigation, getAllIndicators, getAllMitigationLogs } from "../../services/ThreatIntelligenceService";
 
 describe("BiomedicalAiWatermarkService", () => {
   it("getWatermarkedAiDatasets returns list", async () => { const d = await getWatermarkedAiDatasets(); expect(d).toHaveLength(1); expect(d[0].name).toBe("Training Data"); });
@@ -84,4 +84,31 @@ describe("BiomedicalMpcHsmService", () => {
 });
 
 describe("BiomedicalSoarService", () => {
-  it("getSoarPlaybooks returns playbooks", async () => { const d =
+  it("getSoarPlaybooks returns playbooks", async () => { const d = await getSoarPlaybooks(); expect(d).toHaveLength(1); expect(d[0].playbookId).toBe("SB-001"); });
+  it("deploySoarPlaybook deploys", async () => { const r = await deploySoarPlaybook({ name: "Contain" }); expect(r.playbookId).toBe("SB-NEW"); });
+  it("runPlaybookSimulation runs sim", async () => { const r = await runPlaybookSimulation("SB-001"); expect(r.simulated).toBe(true); expect(r.score).toBe(98); });
+});
+
+describe("BiomedicalSovereignIdentityService", () => {
+  it("getVerifiableCredentials returns credentials", async () => { const d = await getVerifiableCredentials(); expect(d).toHaveLength(1); expect(d[0].type).toBe("DID"); });
+  it("issueVerifiableCredential issues", async () => { const r = await issueVerifiableCredential({ subject: "did:example:1" }); expect(r.credentialId).toBe("VC-NEW"); });
+  it("verifyCredentialPresentation verifies", async () => { const r = await verifyCredentialPresentation("VC-001"); expect(r.verified).toBe(true); });
+});
+
+describe("ComplianceEvidenceService", () => {
+  it("getActivePolicy returns the policy", async () => { const d = await getActivePolicy(); expect(d.immutable).toBe(true); });
+  it("updatePolicy updates the policy", async () => { const r = await updatePolicy({ immutable: false }); expect(r.success).toBe(true); });
+  it("ingestEvidenceRecord ingests a record", async () => { const r = await ingestEvidenceRecord({ type: "Audit Log" }); expect(r.recordId).toBe("EV-NEW"); });
+  it("verifyEvidenceChain verifies the chain", async () => { const r = await verifyEvidenceChain(); expect(r.chainValid).toBe(true); expect(r.blockCount).toBe(50); });
+  it("getAllRecords returns records", async () => { const d = await getAllRecords(); expect(d).toHaveLength(1); expect(d[0].recordId).toBe("EV-001"); });
+  it("getAllChainLogs returns chain logs", async () => { const d = await getAllChainLogs(); expect(d).toHaveLength(1); expect(d[0].action).toBe("INGESTED"); });
+});
+
+describe("ThreatIntelligenceService", () => {
+  it("getActiveFeedConfig returns the feed config", async () => { const d = await getActiveFeedConfig(); expect(d.feedEnabled).toBe(true); expect(d.refreshInterval).toBe(300); });
+  it("updateFeedConfig updates the config", async () => { const r = await updateFeedConfig({ refreshInterval: 600 }); expect(r.success).toBe(true); });
+  it("ingestIndicator ingests an IOC", async () => { const r = await ingestIndicator({ type: "IP", value: "10.0.0.1" }); expect(r.indicatorId).toBe("IOC-NEW"); });
+  it("triggerMitigation triggers mitigation", async () => { const r = await triggerMitigation({ indicatorId: "IOC-001" }); expect(r.mitigated).toBe(true); });
+  it("getAllIndicators returns indicators", async () => { const d = await getAllIndicators(); expect(d).toHaveLength(1); expect(d[0].type).toBe("IP"); });
+  it("getAllMitigationLogs returns mitigation logs", async () => { const d = await getAllMitigationLogs(); expect(d).toHaveLength(1); expect(d[0].action).toBe("BLOCKED"); });
+});

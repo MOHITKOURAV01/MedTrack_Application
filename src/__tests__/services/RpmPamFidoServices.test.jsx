@@ -39,9 +39,9 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getRpmStreams, pairRpmDevice, scanBiometricAnomalies, getRpmSecurityStandards } from "../../../services/RpmTelemetryService";
-import { getPamSessions, requestJitElevation, terminatePamSession, getPamVaultPolicy } from "../../../services/PamSessionService";
-import { getFido2Credentials, registerFido2Credential, runWebAuthnSimulation, getFidoStandards } from "../../../services/Fido2WebAuthnService";
+import { getRpmStreams, pairRpmDevice, scanBiometricAnomalies, getRpmSecurityStandards } from "../../services/RpmTelemetryService";
+import { getPamSessions, requestJitElevation, terminatePamSession, getPamVaultPolicy } from "../../services/PamSessionService";
+import { getFido2Credentials, registerFido2Credential, runWebAuthnSimulation, getFidoStandards } from "../../services/Fido2WebAuthnService";
 
 describe("RpmTelemetryService", () => {
   it("getRpmStreams returns stream list", async () => {

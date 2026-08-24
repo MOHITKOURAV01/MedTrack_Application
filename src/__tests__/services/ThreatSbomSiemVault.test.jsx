@@ -32,10 +32,10 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getActiveThreatEvents, getSoarPlaybooks, triggerPlaybookExecution, togglePlaybookStatus, simulateThreatIncident, updateThreatStatus } from "../../../services/ThreatDetectionService";
-import { getAllArtifacts, registerArtifact, getAllComponents, ingestComponent, generateAttestation, getCycloneDxManifest } from "../../../services/SbomService";
-import { getSiemEventLogs, getSiemMetrics, getSiemCorrelationRules, toggleCorrelationRule, exportSiemLogs } from "../../../services/SiemSecurityAnalyticsService";
-import { getKeyVaultSecrets, getHsmHealthTelemetry, rotateSecret, createSecret, revokeSecret } from "../../../services/KeyVaultSecurityService";
+import { getActiveThreatEvents, getSoarPlaybooks, triggerPlaybookExecution, togglePlaybookStatus, simulateThreatIncident, updateThreatStatus } from "../../services/ThreatDetectionService";
+import { getAllArtifacts, registerArtifact, getAllComponents, ingestComponent, generateAttestation, getCycloneDxManifest } from "../../services/SbomService";
+import { getSiemEventLogs, getSiemMetrics, getSiemCorrelationRules, toggleCorrelationRule, exportSiemLogs } from "../../services/SiemSecurityAnalyticsService";
+import { getKeyVaultSecrets, getHsmHealthTelemetry, rotateSecret, createSecret, revokeSecret } from "../../services/KeyVaultSecurityService";
 
 describe("ThreatDetectionService", () => {
   it("getActiveThreatEvents returns events", async () => {

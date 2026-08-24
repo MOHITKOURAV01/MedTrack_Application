@@ -40,11 +40,11 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { setupMfa, verifyMfa, getMfaStatus, disableMfa, getActiveDevices, registerDeviceSession, revokeDeviceSession, revokeAllOtherDevices } from "../../../services/MfaService";
-import { configureSsoProvider, initiateSsoLogin, getAllSsoProviders, toggleSsoProvider, evaluateUserSecurityRisk, getUserAuditLogs } from "../../../services/SsoSecurityService";
-import { getAllRoles, getAllPermissions, createRole, updateRolePermissions, checkUserPermission } from "../../../services/RbacSecurityService";
-import { getActivePolicy, updatePolicy, runComplianceAudit, recordControlEvidence, getAllAuditReports, getAllControlItems } from "../../../services/ComplianceSecurityService";
-import { getActivePolicy as getGovernancePolicy, updatePolicy as updateGovernancePolicy, runComplianceScan, getAllControls, getAllAuditReports as getGovernanceReports } from "../../../services/SecurityGovernanceService";
+import { setupMfa, verifyMfa, getMfaStatus, disableMfa, getActiveDevices, registerDeviceSession, revokeDeviceSession, revokeAllOtherDevices } from "../../services/MfaService";
+import { configureSsoProvider, initiateSsoLogin, getAllSsoProviders, toggleSsoProvider, evaluateUserSecurityRisk, getUserAuditLogs } from "../../services/SsoSecurityService";
+import { getAllRoles, getAllPermissions, createRole, updateRolePermissions, checkUserPermission } from "../../services/RbacSecurityService";
+import { getActivePolicy, updatePolicy, runComplianceAudit, recordControlEvidence, getAllAuditReports, getAllControlItems } from "../../services/ComplianceSecurityService";
+import { getActivePolicy as getGovernancePolicy, updatePolicy as updateGovernancePolicy, runComplianceScan, getAllControls, getAllAuditReports as getGovernanceReports } from "../../services/SecurityGovernanceService";
 
 describe("MfaService", () => {
   it("setupMfa returns QR code", async () => {
@@ -143,4 +143,52 @@ describe("ComplianceSecurityService", () => {
     expect(data.enforceHIPAA).toBe(true);
   });
   it("updatePolicy updates policy", async () => {
-    const
+    const result = await updatePolicy({ enforceHIPAA: false });
+    expect(result.success).toBe(true);
+  });
+  it("runComplianceAudit runs an audit", async () => {
+    const result = await runComplianceAudit();
+    expect(result.auditId).toBe("AUD-001");
+    expect(result.score).toBe(96);
+  });
+  it("recordControlEvidence records evidence", async () => {
+    const result = await recordControlEvidence({ controlId: "CC-001", note: "Reviewed" });
+    expect(result.evidenceId).toBe("EV-NEW");
+  });
+  it("getAllAuditReports returns reports", async () => {
+    const data = await getAllAuditReports();
+    expect(data).toHaveLength(1);
+    expect(data[0].type).toBe("HIPAA");
+  });
+  it("getAllControlItems returns controls", async () => {
+    const data = await getAllControlItems();
+    expect(data).toHaveLength(1);
+    expect(data[0].name).toBe("Encryption");
+  });
+});
+
+describe("SecurityGovernanceService", () => {
+  it("getActivePolicy returns the governance policy", async () => {
+    const data = await getGovernancePolicy();
+    expect(data.enforceZeroTrust).toBe(true);
+  });
+  it("updatePolicy updates the governance policy", async () => {
+    const result = await updateGovernancePolicy({ enforceZeroTrust: false });
+    expect(result.success).toBe(true);
+  });
+  it("runComplianceScan runs a scan", async () => {
+    const result = await runComplianceScan();
+    expect(result.scanId).toBe("SCAN-001");
+    expect(result.issues).toBe(2);
+  });
+  it("getAllControls returns governance controls", async () => {
+    const data = await getAllControls();
+    expect(data).toHaveLength(1);
+    expect(data[0].status).toBe("COMPLIANT");
+  });
+  it("getAllAuditReports returns governance reports", async () => {
+    const data = await getGovernanceReports();
+    expect(data).toHaveLength(1);
+    expect(data[0].type).toBe("Quarterly");
+  });
+});

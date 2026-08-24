@@ -26,7 +26,7 @@ import {
   ingestThreatIndicator,
   syncTaxiiFeed,
   getTaxiiCollections,
-} from "../../../services/ThreatIntelService";
+} from "../../services/ThreatIntelService";
 
 describe("ThreatIntelService", () => {
   it("getThreatFeeds returns indicator list", async () => {

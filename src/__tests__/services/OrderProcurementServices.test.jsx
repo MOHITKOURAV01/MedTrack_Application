@@ -33,8 +33,8 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getAllOrders, getOrderById, placeOrder, updateOrderStatus, getSupplierMetrics, emailInvoice } from "../../../services/OrderService";
-import { createProcurementRequest, listProcurementRequests, getProcurementRequest, cancelProcurementRequest, getApprovalInbox, listApprovalPolicies, createApprovalPolicy, decideApprovalStep, listMyQuotes, getBudgetSummary, listQuotesForRequest, acceptQuote, listReceivingRecords, recordReceiving, listInvoiceMatches, recordInvoiceMatch, getProcurementAuditTrail } from "../../../services/ProcurementService";
+import { getAllOrders, getOrderById, placeOrder, updateOrderStatus, getSupplierMetrics, emailInvoice } from "../../services/OrderService";
+import { createProcurementRequest, listProcurementRequests, getProcurementRequest, cancelProcurementRequest, getApprovalInbox, listApprovalPolicies, createApprovalPolicy, decideApprovalStep, listMyQuotes, getBudgetSummary, listQuotesForRequest, acceptQuote, listReceivingRecords, recordReceiving, listInvoiceMatches, recordInvoiceMatch, getProcurementAuditTrail } from "../../services/ProcurementService";
 
 describe("OrderService", () => {
   it("getAllOrders returns paginated orders", async () => {

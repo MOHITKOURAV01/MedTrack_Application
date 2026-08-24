@@ -26,7 +26,7 @@ import {
   onboardIotDevice,
   quarantineIotDevice,
   getFda524bRequirements,
-} from "../../../services/IotSecurityService";
+} from "../../services/IotSecurityService";
 
 describe("IotSecurityService", () => {
   it("getIotDevices returns device list", async () => {

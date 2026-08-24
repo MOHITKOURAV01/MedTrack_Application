@@ -29,11 +29,11 @@ const server = setupServer(
   http.get(`${BASE}/api/auth/ctem/assets`, () =>
     HttpResponse.json([{ assetId: "CTEM-001", assetName: "Telehealth Portal", cvssScore: 8.8 }])
   ),
-  http.post(`${BASE}/api/auth/ctem/assets`, () =>
-    HttpResponse.json({ assetId: "CTEM-NEW", exposureVerdict: "LOW_EXPOSURE_MONITORED" })
+  http.post(`${BASE}/api/auth/ctem/scan`, () =>
+    HttpResponse.json({ assetId: "CTEM-NEW", exposureLevel: "LOW_EXPOSURE_MONITORED" })
   ),
-  http.post(`${BASE}/api/auth/ctem/assets/:id/attack-path-sim`, () =>
-    HttpResponse.json({ simulatedExploitPath: "Public IP -> Gateway -> DB", attackBlastRadius: "Low" })
+  http.post(`${BASE}/api/auth/ctem/assets/:id/validate`, () =>
+    HttpResponse.json({ assetId: "CTEM-001", exploitabilityVerified: true, remoteCodeExecutionPossible: false })
   ),
   // CSPM
   http.get(`${BASE}/api/auth/cspm/accounts`, () =>
@@ -58,10 +58,10 @@ beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-import { getQkdNodes, provisionQkdNode, runQkdExchangeSimulation, getQkdStandards } from "../../../services/QkdKeyDistributionService";
-import { getPqcKeyPairs, generatePqcKeyPair, runPqcSimulation, getNistPqcStandards } from "../../../services/PostQuantumCryptoService";
-import { getCtemAssets, onboardCtemAsset, runAttackPathSimulation, getCtemStandards } from "../../../services/HealthcareCtemService";
-import { getAllAccounts, registerCloudAccount, getAllFindings, ingestFinding, remediateFinding } from "../../../services/CspmService";
+import { getQkdNodes, provisionQkdNode, runQkdExchangeSimulation, getQkdStandards } from "../../services/QkdKeyDistributionService";
+import { getPqcKeyPairs, generatePqcKeyPair, runPqcSimulation, getNistPqcStandards } from "../../services/PostQuantumCryptoService";
+import { getHealthcareCtemInventory, initiateCtemDiscoveryScan, validateCtemExposure, getHealthcareCtemStandards } from "../../services/HealthcareCtemService";
+import { getAllAccounts, registerCloudAccount, getAllFindings, ingestFinding, remediateFinding } from "../../services/CspmService";
 
 describe("QkdKeyDistributionService", () => {
   it("getQkdNodes returns node list", async () => {
@@ -156,41 +156,81 @@ describe("PostQuantumCryptoService", () => {
 });
 
 describe("HealthcareCtemService", () => {
-  it("getCtemAssets returns asset list", async () => {
-    const data = await getCtemAssets();
+  it("getHealthcareCtemInventory returns the asset list", async () => {
+    const data = await getHealthcareCtemInventory();
     expect(data).toHaveLength(1);
     expect(data[0].assetName).toBe("Telehealth Portal");
   });
 
-  it("onboardCtemAsset onboards an asset", async () => {
-    const result = await onboardCtemAsset({ assetName: "New Asset" });
+  it("initiateCtemDiscoveryScan starts a scan", async () => {
+    const result = await initiateCtemDiscoveryScan({ assetName: "New Asset" });
     expect(result.assetId).toBe("CTEM-NEW");
   });
 
-  it("runAttackPathSimulation runs simulation", async () => {
-    const result = await runAttackPathSimulation("CTEM-001");
-    expect(result.simulatedExploitPath).toBeDefined();
-    expect(result.attackBlastRadius).toBeDefined();
+  it("validateCtemExposure validates an asset", async () => {
+    const result = await validateCtemExposure("CTEM-001");
+    expect(result.exploitabilityVerified).toBe(true);
+    expect(result.remoteCodeExecutionPossible).toBe(false);
   });
 
-  it("getCtemStandards returns standards", async () => {
-    const data = await getCtemStandards();
-    expect(data).toHaveLength(3);
+  it("getHealthcareCtemStandards returns the standards list", async () => {
+    // Served from a local constant, not the API, so it holds with the server down.
+    const data = await getHealthcareCtemStandards();
+    expect(data).toHaveLength(4);
     expect(data[0].standard).toContain("Gartner");
   });
 
-  it("getCtemAssets falls back on error", async () => {
+  it("getHealthcareCtemInventory falls back on error", async () => {
     server.use(http.get(`${BASE}/api/auth/ctem/assets`, () => HttpResponse.error("fail")));
-    const data = await getCtemAssets();
+    const data = await getHealthcareCtemInventory();
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
+    expect(data[0].assetId).toContain("CTEM-ASSET-");
   });
 
-  it("onboardCtemAsset falls back on error", async () => {
-    server.use(http.post(`${BASE}/api/auth/ctem/assets`, () => HttpResponse.error("fail")));
-    const result = await onboardCtemAsset({});
-    expect(result.assetId).toContain("CTEM-AST-");
+  it("initiateCtemDiscoveryScan falls back on error", async () => {
+    server.use(http.post(`${BASE}/api/auth/ctem/scan`, () => HttpResponse.error("fail")));
+    const result = await initiateCtemDiscoveryScan({ assetName: "Bedside Monitor" });
+    expect(result.assetId).toContain("CTEM-ASSET-");
+    // The fallback echoes the caller's name rather than inventing one.
+    expect(result.assetName).toBe("Bedside Monitor");
   });
 
-  it("runAttackPathSimulation falls back on error", async () => {
-    server.use(http.post(`${BASE}/api/auth/ctem/assets/:id/attack-path-sim
+  it("validateCtemExposure falls back on error", async () => {
+    server.use(http.post(`${BASE}/api/auth/ctem/assets/:id/validate`, () => HttpResponse.error("fail")));
+    const result = await validateCtemExposure("CTEM-001");
+    expect(result.assetId).toBe("CTEM-001");
+    expect(result.microsegmentationActive).toBe(true);
+  });
+});
+
+describe("CspmService", () => {
+  it("getAllAccounts returns connected cloud accounts", async () => {
+    const data = await getAllAccounts();
+    expect(data).toHaveLength(1);
+    expect(data[0].provider).toBe("AWS");
+  });
+
+  it("registerCloudAccount registers an account", async () => {
+    const result = await registerCloudAccount({ provider: "Azure" });
+    expect(result.accountId).toBe("AZ-NEW");
+    expect(result.status).toBe("CONNECTED");
+  });
+
+  it("getAllFindings returns findings", async () => {
+    const data = await getAllFindings();
+    expect(data).toHaveLength(1);
+    expect(data[0].severity).toBe("HIGH");
+  });
+
+  it("ingestFinding ingests a finding", async () => {
+    const result = await ingestFinding({ severity: "MEDIUM" });
+    expect(result.findingId).toBe("FIND-NEW");
+    expect(result.status).toBe("INGESTED");
+  });
+
+  it("remediateFinding remediates a finding", async () => {
+    const result = await remediateFinding("FIND-001");
+    expect(result.status).toBe("REMEDIATED");
+  });
+});
