@@ -209,7 +209,11 @@ export default function UrologyHub() {
   /* simulation event toasts */
   useEffect(() => {
     if (pausedRef.current || tick === 0 || tick % 3 !== 0) return;
-    const psaRiser = onco.find((r) => r.psa >= 10 && r.risk !== "Critical" || r.psa > 0 && r.psa >= 10);
+    // Parenthesised to fix the precedence warning without changing behaviour. Note the second
+    // disjunct reduces to `r.psa >= 10`, which makes the whole expression equivalent to that
+    // alone and the `risk !== "Critical"` guard dead - flagged rather than changed, because
+    // narrowing which patients raise a PSA alert is a clinical decision, not a lint fix.
+    const psaRiser = onco.find((r) => (r.psa >= 10 && r.risk !== "Critical") || (r.psa > 0 && r.psa >= 10));
     if (psaRiser && Math.random() < 0.6) {
       addToast(`PSA alert: ${psaRiser.patient} PSA ${psaRiser.psa} ng/mL — review escalation`, "error");
     }

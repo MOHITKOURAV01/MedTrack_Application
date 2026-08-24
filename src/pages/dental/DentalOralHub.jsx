@@ -247,11 +247,14 @@ export default function DentalOralHub() {
     const inProgress = chairs.filter((c) => c.progress < 100).length;
     const ready = sterile.filter((s) => s.status === "Ready").length;
     const reprocessing = sterile.filter((s) => s.status === "In reprocessing").length;
-    const implants = implants.filter((im) => im.id.startsWith("IM")).length;
+    // `const implants = implants.filter(...)` shadowed the state array with itself, so every
+    // read below hit the temporal dead zone. The card wants a count, like `ready` above it.
+    const fixtures = implants.filter((im) => im.id.startsWith("IM"));
+    const implantCount = fixtures.length;
     const ortho = implants.filter((im) => im.id.startsWith("OR")).length;
     const readyAbut = implants.filter((im) => im.status === "Ready for abutment").length;
-    const avgTorque = Math.round(implants.filter((im) => im.id.startsWith("IM")).reduce((a, im) => a + im.torque, 0) / Math.max(1, implants.filter((im) => im.id.startsWith("IM")).length));
-    return { emergency, inProgress, ready, reprocessing, implants, ortho, readyAbut, avgTorque };
+    const avgTorque = Math.round(fixtures.reduce((a, im) => a + im.torque, 0) / Math.max(1, fixtures.length));
+    return { emergency, inProgress, ready, reprocessing, implants: implantCount, ortho, readyAbut, avgTorque };
   }, [chairs, sterile, implants]);
 
   /* ---------------- actions ---------------- */
