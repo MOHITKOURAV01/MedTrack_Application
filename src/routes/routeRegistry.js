@@ -94,6 +94,19 @@ const ColdChainCommandHub = lazy(() => import("../pages/coldchain/ColdChainComma
 const ClinicalTrialHub = lazy(() => import("../pages/research/ClinicalTrialHub"));
 const EmergencyTriageHub = lazy(() => import("../pages/emergency/EmergencyTriageHub"));
 const EmergencyDisasterMciCommandHub = lazy(() => import("../pages/emergency/EmergencyDisasterMciCommandHub"));
+
+// Consoles that existed under src/pages/ with no route entry. An import alone is not
+// reachability - DialysisRenalHub and SterileProcessingHub sat on main imported and unreferenced -
+// so each of these has an entry in ROUTES below.
+const AnesthesiologyPacuHub = lazy(() => import("../pages/anesthesiology/AnesthesiologyPacuHub"));
+const BioAiDiagnosticsHub = lazy(() => import("../pages/bioai/BioAiDiagnosticsHub"));
+const CardiovascularHemodynamicsHub = lazy(() => import("../pages/hemodynamics/CardiovascularHemodynamicsHub"));
+const NephrologyCrrtHub = lazy(() => import("../pages/nephrology/NephrologyCrrtHub"));
+const NeuroIcuIcpHub = lazy(() => import("../pages/neuro/NeuroIcuIcpHub"));
+const PrecisionOncologyHub = lazy(() => import("../pages/oncology/PrecisionOncologyHub"));
+const PediatricIcuTelemetryHub = lazy(() => import("../pages/picu/PediatricIcuTelemetryHub"));
+const DisasterTriageIncidentCommandHub = lazy(() => import("../pages/triage/DisasterTriageIncidentCommandHub"));
+const ZeroTrustBiomedicalSecurityHub = lazy(() => import("../pages/security/ZeroTrustBiomedicalSecurityHub"));
 const RegulatoryAuditHub = lazy(() => import("../pages/audit/RegulatoryAuditHub"));
 const HospitalCommandOrchestrationSuitePage = lazy(() => import("../pages/command/HospitalCommandOrchestrationSuitePage"));
 const LabAutomationHub = lazy(() => import("../pages/lab/LabAutomationHub"));
@@ -303,20 +316,33 @@ export const ROUTES = [
   { page: "medication-cold-chain", slugs: ["medication-cold-chain", "med-supply-chain"], component: MedicationSupplyColdChainHubPage, access: AUTHENTICATED },
   { page: "telehealth-remote-monitoring", slugs: ["telehealth-remote-monitoring", "remote-monitoring"], component: TelehealthRemoteMonitoringHubPage, access: AUTHENTICATED },
   { page: "genomic-clinical-trials", slugs: ["genomic-clinical-trials", "genomics"], component: GenomicClinicalTrialsHubPage, access: AUTHENTICATED },
-  { page: "biomedical-ai-diagnostics", slugs: ["biomedical-ai-diagnostics", "ai-diagnostics"], component: BiomedicalAiDiagnosticsOverwatchPage, access: AUTHENTICATED },
-  { page: "backend-auth-security", slugs: ["backend-auth-security", "auth-security-infrastructure"], component: BackendAuthenticationSecurityInfrastructurePage, access: AUTHENTICATED },
-  { page: "blood-bank", slugs: ["blood-bank", "transfusion", "bloodbank"], component: BloodBankHub, access: AUTHENTICATED },
+  { page: "biomedical-ai-diagnostics", slugs: ["biomedical-ai-diagnostics", "ai-diagnostics", "ai-diagnostics-overwatch"], component: BiomedicalAiDiagnosticsOverwatchPage, access: AUTHENTICATED },
+  { page: "blood-bank", slugs: ["blood-bank", "transfusion", "bloodbank", "haemovigilance"], component: BloodBankHub, access: AUTHENTICATED },
   { page: "blood-bank-transfusion", slugs: ["blood-bank-transfusion", "transfusion-medicine"], component: BloodBankTransfusionHub, access: AUTHENTICATED },
-  { page: "cardiology-cathlab", slugs: ["cardiology-cathlab", "cath-lab", "cardiology"], component: CardiologyCathLabHub, access: AUTHENTICATED },
+  { page: "cardiology-cath-lab", slugs: ["cardiology-cath-lab", "cath-lab", "cardiology", "cardiology-cathlab"], component: CardiologyCathLabHub, access: AUTHENTICATED },
   { page: "cardiovascular-hemodynamics-ecmo", slugs: ["cardiovascular-hemodynamics-ecmo", "hemodynamics-ecmo", "ecmo-station"], component: CardiovascularHemodynamicsEcmoPage, access: AUTHENTICATED },
   { page: "icu-telemetry-overwatch", slugs: ["icu-telemetry-overwatch", "icu-overwatch"], component: ICUTelemetryOverwatchHubPage, access: AUTHENTICATED },
   { page: "pathology-digital", slugs: ["pathology-digital", "pathology", "digital-pathology"], component: PathologyDigitalHub, access: AUTHENTICATED },
   { page: "patient-ehr-analytics", slugs: ["patient-ehr-analytics", "ehr-analytics"], component: PatientEhrAnalyticsPredictivePage, access: AUTHENTICATED },
-  { page: "dialysis-renal", slugs: ["dialysis-renal", "dialysis", "nephrology"], component: DialysisRenalHub, access: AUTHENTICATED },
+  { page: "dialysis-renal", slugs: ["dialysis-renal", "dialysis", "nephrology", "renal-replacement"], component: DialysisRenalHub, access: AUTHENTICATED },
   { page: "nephrology-crrt-dialysis", slugs: ["nephrology-crrt-dialysis", "crrt-dialysis", "crrt-station"], component: NephrologyCrrtStationPage, access: AUTHENTICATED },
-  { page: "sterile-processing", slugs: ["sterile-processing", "cssd"], component: SterileProcessingHub, access: AUTHENTICATED },
+  { page: "sterile-processing", slugs: ["sterile-processing", "cssd", "instrument-traceability"], component: SterileProcessingHub, access: AUTHENTICATED },
   { page: "genomics-precision", slugs: ["genomics-precision", "precision-medicine", "genomic-medicine"], component: GenomicsPrecisionHub, access: AUTHENTICATED },
   { page: "emergency-disaster-mci", slugs: ["emergency-disaster-mci", "disaster-triage", "mci-command"], component: EmergencyDisasterMciCommandHub, access: AUTHENTICATED },
+
+  // --- consoles restored from src/pages/ ------------------------------------
+  // Each of these was a finished component that no URL reached. Slugs avoid the near misses that
+  // already exist in the table: "nephrology" belongs to dialysis-renal, "pediatric-icu" to
+  // pediatric-neonatal-icu, "disaster-triage" to emergency-disaster-mci, and "hemodynamics-ecmo"
+  // to cardiovascular-hemodynamics-ecmo.
+  { page: "anesthesiology-pacu", slugs: ["anesthesiology-pacu", "pacu", "anesthesiology"], component: AnesthesiologyPacuHub, access: AUTHENTICATED },
+  { page: "bioai-diagnostics", slugs: ["bioai-diagnostics", "bio-ai", "ai-pathology"], component: BioAiDiagnosticsHub, access: AUTHENTICATED },
+  { page: "cardiovascular-hemodynamics", slugs: ["cardiovascular-hemodynamics", "hemodynamics", "swan-ganz"], component: CardiovascularHemodynamicsHub, access: AUTHENTICATED },
+  { page: "nephrology-crrt", slugs: ["nephrology-crrt", "crrt", "aki-overwatch"], component: NephrologyCrrtHub, access: AUTHENTICATED },
+  { page: "neuro-icu-icp", slugs: ["neuro-icu-icp", "neuro-icu", "icp-monitoring"], component: NeuroIcuIcpHub, access: AUTHENTICATED },
+  { page: "precision-oncology", slugs: ["precision-oncology", "molecular-tumour-board", "tumour-board"], component: PrecisionOncologyHub, access: AUTHENTICATED },
+  { page: "pediatric-icu-telemetry", slugs: ["pediatric-icu-telemetry", "picu", "picu-telemetry"], component: PediatricIcuTelemetryHub, access: AUTHENTICATED },
+  { page: "disaster-triage-command", slugs: ["disaster-triage-command", "mci-triage", "incident-command"], component: DisasterTriageIncidentCommandHub, access: AUTHENTICATED },
 
   // --- consoles restored from the orphan set ------------------------------------
   // Finished page components that had no entry here at all, so no URL reached them. Each is
@@ -353,8 +379,9 @@ export const ROUTES = [
   // Two of the eleven restored consoles are tenant-wide security governance rather than clinical
   // operations, so they are scoped to the hospital admin role like every other console in this
   // block rather than to any signed-in user.
-  { page: "backend-auth-infrastructure", slugs: ["backend-auth-infrastructure", "auth-infrastructure"], component: BackendAuthenticationSecurityInfrastructurePage, access: HOSPITAL_ONLY },
-  { page: "zero-trust-governance", slugs: ["zero-trust-governance", "zero-trust", "zerotrust-governance"], component: EnterpriseZeroTrustSecurityGovernancePage, access: HOSPITAL_ONLY },
+  { page: "backend-auth-infrastructure", slugs: ["backend-auth-infrastructure", "auth-infrastructure", "backend-auth-security", "auth-security-infrastructure"], component: BackendAuthenticationSecurityInfrastructurePage, access: HOSPITAL_ONLY },
+  { page: "zerotrust-governance", slugs: ["zerotrust-governance", "zero-trust-governance", "zero-trust"], component: EnterpriseZeroTrustSecurityGovernancePage, access: HOSPITAL_ONLY },
+  { page: "zerotrust-biomedical-security", slugs: ["zerotrust-biomedical-security", "biomedical-zero-trust", "ebpf-microsegmentation"], component: ZeroTrustBiomedicalSecurityHub, access: HOSPITAL_ONLY },
   { page: "authority-security", slugs: ["authority-security", "authority"], component: AuthoritySecurityPage, access: HOSPITAL_ONLY },
   { page: "sso-security", slugs: ["sso-security", "sso"], component: EnterpriseSsoPage, access: HOSPITAL_ONLY },
   { page: "rbac-security", slugs: ["rbac-security", "rbac"], component: RbacSecurityPage, access: HOSPITAL_ONLY },
