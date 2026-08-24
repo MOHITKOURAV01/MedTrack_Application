@@ -257,8 +257,8 @@ const ZeroTrustBiomedicalSecurityHub = () => {
             
             <div className="h-32 bg-slate-950 border border-slate-800/80 rounded-xl flex items-center justify-center p-4 font-mono text-xs text-slate-300 overflow-hidden relative">
               <div className="space-y-1 w-full text-center">
-                <p className="text-emerald-400">[ALLOW] 10.240.12.84:443 --(mTLS PQC)--> 10.240.0.10:8443 (EHR Telemetry Sync)</p>
-                <p className="text-rose-400 font-bold bg-rose-950/40 py-0.5 rounded animate-pulse">[DENY] 10.240.80.110:53120 --(TCP SYN)--> 10.240.12.84:8883 (Unauthorized Scan Blocked)</p>
+                <p className="text-emerald-400">[ALLOW] 10.240.12.84:443 --(mTLS PQC)--&gt; 10.240.0.10:8443 (EHR Telemetry Sync)</p>
+                <p className="text-rose-400 font-bold bg-rose-950/40 py-0.5 rounded animate-pulse">[DENY] 10.240.80.110:53120 --(TCP SYN)--&gt; 10.240.12.84:8883 (Unauthorized Scan Blocked)</p>
                 <p className="text-slate-500 text-[10px]">eBPF Program: bpf_telemetry_guard.o | Action: XDP_DROP</p>
               </div>
             </div>
