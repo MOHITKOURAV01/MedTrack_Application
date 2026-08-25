@@ -92,7 +92,10 @@ export const getHsmHealthTelemetry = async () => {
     console.warn("Using fallback HSM cluster health data:", error.message);
     return {
       hsmClusterId: "hsm-cluster-us-east-1",
+      hsmHealth: "OPERATIONAL",
       clusterStatus: "HEALTHY",
+      fipsLevel: "FIPS_140_2_L3",
+      keyCount: 5,
       activeNodes: 4,
       totalNodes: 4,
       cryptoOperationsPerSec: 12450,
@@ -110,12 +113,17 @@ export const rotateSecret = async (secretId) => {
     const response = await API.post(`/api/auth/keyvault/secrets/${secretId}/rotate`);
     return response.data;
   } catch (error) {
+    console.warn("Secret rotation did not reach the HSM:", error.message);
+    // No key material was generated. The version is therefore unchanged, not incremented -
+    // reporting a fresh `newVersion` made an unrotated key look rotated in the audit view.
     return {
-      success: true,
+      success: false,
+      offline: true,
       secretId,
-      newVersion: `v${(Math.random() * 5 + 2).toFixed(1)}`,
-      rotatedAt: new Date().toISOString().split("T")[0],
-      message: `Key "${secretId}" rotated successfully using FIPS 140-3 entropy pool.`
+      newKeyVersion: null,
+      newVersion: null,
+      rotatedAt: null,
+      message: `Key "${secretId}" was NOT rotated - the HSM cluster was unreachable.`
     };
   }
 };
@@ -148,10 +156,15 @@ export const revokeSecret = async (secretId) => {
     const response = await API.delete(`/api/auth/keyvault/secrets/${secretId}`);
     return response.data;
   } catch (error) {
+    console.warn("Secret revocation did not reach the HSM:", error.message);
+    // A revocation that did not reach the HSM leaves the secret live. Saying otherwise is
+    // the one failure mode a key-management console must not have.
     return {
-      success: true,
+      success: false,
+      offline: true,
       secretId,
-      message: `Secret "${secretId}" revoked and marked for cryptographic zeroization.`
+      revokedAt: null,
+      message: `Secret "${secretId}" was NOT revoked - the HSM cluster was unreachable. It remains active.`
     };
   }
 };

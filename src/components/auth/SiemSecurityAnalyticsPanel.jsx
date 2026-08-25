@@ -183,7 +183,7 @@ export default function SiemSecurityAnalyticsPanel() {
               <span className="text-slate-400 font-sans font-bold uppercase text-[10px]">Ingestion Engine</span>
               <span className="text-sky-400 font-bold flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
-                {metrics?.eventsPerSecond || 1420} EPS
+                {metrics?.eventsPerMinute ?? "--"} EPM
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-700/80 font-mono text-[11px]">

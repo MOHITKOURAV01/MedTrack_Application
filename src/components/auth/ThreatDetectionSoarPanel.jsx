@@ -150,13 +150,19 @@ export default function ThreatDetectionSoarPanel() {
   const handleTogglePlaybook = async (playbookId, currentStatus) => {
     const nextStatus = currentStatus === "ENABLED";
     try {
-      await togglePlaybookStatus(playbookId, !nextStatus);
+      const res = await togglePlaybookStatus(playbookId, !nextStatus);
       setPlaybooks((prev) =>
-        prev.map((pb) => (pb.id === playbookId ? { ...pb, status: nextStatus ? "DISABLED" : "ENABLED" } : pb))
+        prev.map((pb) =>
+          pb.id === playbookId
+            ? { ...pb, status: nextStatus ? "DISABLED" : "ENABLED", enabled: !nextStatus }
+            : pb
+        )
       );
       setNotification({
-        type: "success",
-        message: `Playbook ${playbookId} is now ${nextStatus ? "DISABLED" : "ENABLED"}.`
+        type: res && res.offline ? "warning" : "success",
+        message: res && res.offline
+          ? `Playbook ${playbookId} shown as ${nextStatus ? "DISABLED" : "ENABLED"} locally - the automation server did not confirm it. The playbook may still be armed.`
+          : `Playbook ${playbookId} is now ${nextStatus ? "DISABLED" : "ENABLED"}.`
       });
     } catch (err) {
       setNotification({ type: "error", message: "Failed to toggle playbook status." });
@@ -185,11 +191,16 @@ export default function ThreatDetectionSoarPanel() {
   // Update Event Status Handler
   const handleStatusChange = async (eventId, newStatus) => {
     try {
-      await updateThreatStatus(eventId, newStatus);
+      const res = await updateThreatStatus(eventId, newStatus);
       setThreatEvents((prev) =>
         prev.map((evt) => (evt.id === eventId ? { ...evt, status: newStatus } : evt))
       );
-      setNotification({ type: "success", message: `Event ${eventId} updated to ${newStatus}.` });
+      setNotification({
+        type: res && res.offline ? "warning" : "success",
+        message: res && res.offline
+          ? `Event ${eventId} shown as ${newStatus} locally - the SOC server did not confirm it. Other analysts still see the previous status.`
+          : `Event ${eventId} updated to ${newStatus}.`
+      });
       if (selectedEvent && selectedEvent.id === eventId) {
         setSelectedEvent((prev) => ({ ...prev, status: newStatus }));
       }
@@ -294,11 +305,15 @@ export default function ThreatDetectionSoarPanel() {
             className={`mt-6 p-4 rounded-xl text-sm font-medium flex items-center justify-between border ${
               notification.type === "error"
                 ? "bg-red-500/10 border-red-500/30 text-red-400"
+                : notification.type === "warning"
+                ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
                 : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
             }`}
           >
             <div className="flex items-center gap-2">
-              {notification.type === "error" ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
+              {notification.type === "error" || notification.type === "warning"
+                ? <AlertTriangle size={18} />
+                : <CheckCircle2 size={18} />}
               <span>{notification.message}</span>
             </div>
             <button

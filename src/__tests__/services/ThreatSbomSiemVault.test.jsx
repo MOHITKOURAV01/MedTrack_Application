@@ -7,15 +7,15 @@ const server = setupServer(
   http.get(`${BASE}/api/auth/threats/events`, () => HttpResponse.json([{ eventId: "TE-001", threatType: "RANSOMWARE", status: "DETECTED" }])),
   http.get(`${BASE}/api/auth/threats/playbooks`, () => HttpResponse.json([{ playbookId: "PB-001", name: "Ransomware Contain" }])),
   http.post(`${BASE}/api/auth/threats/playbooks/PB-001/execute`, () => HttpResponse.json({ executed: true })),
-  http.patch(`${BASE}/api/auth/threats/playbooks/PB-001`, () => HttpResponse.json({ toggled: true })),
+  http.patch(`${BASE}/api/auth/threats/playbooks/PB-001/toggle`, () => HttpResponse.json({ success: true, enabled: true })),
   http.post(`${BASE}/api/auth/threats/simulate`, () => HttpResponse.json({ simulated: true, threatType: "APT" })),
-  http.patch(`${BASE}/api/auth/threats/events/TE-001`, () => HttpResponse.json({ updated: true })),
+  http.patch(`${BASE}/api/auth/threats/events/TE-001/status`, () => HttpResponse.json({ success: true, newStatus: "MITIGATED" })),
   http.get(`${BASE}/api/auth/sbom/artifacts`, () => HttpResponse.json([{ artifactId: "SB-001", name: "medtrack-core" }])),
   http.post(`${BASE}/api/auth/sbom/artifacts`, () => HttpResponse.json({ artifactId: "SB-NEW" })),
   http.get(`${BASE}/api/auth/sbom/components`, () => HttpResponse.json([{ componentId: "CMP-001", name: "react" }])),
   http.post(`${BASE}/api/auth/sbom/components`, () => HttpResponse.json({ componentId: "CMP-NEW" })),
-  http.get(`${BASE}/api/auth/sbom/artifacts/SB-001/attestation`, () => HttpResponse.json({ signed: true, sig: "abc123" })),
-  http.get(`${BASE}/api/auth/sbom/manifests/cyclonedx/SB-001`, () => HttpResponse.json({ format: "CycloneDX", bomRef: "bom-001" })),
+  http.post(`${BASE}/api/auth/sbom/artifacts/SB-001/attest`, () => HttpResponse.json({ attestationId: "att_001", slsaLevel: "SLSA_LEVEL_3" })),
+  http.get(`${BASE}/api/auth/sbom/artifacts/SB-001/cyclonedx`, () => HttpResponse.json({ format: "CycloneDX", version: "1.5", bomRef: "bom-001" })),
   http.get(`${BASE}/api/auth/siem/events`, () => HttpResponse.json([{ eventId: "SE-001", event: "Login Failure" }])),
   http.get(`${BASE}/api/auth/siem/metrics`, () => HttpResponse.json({ eventsLast24h: 142 })),
   http.get(`${BASE}/api/auth/siem/rules`, () => HttpResponse.json([{ ruleId: "SR-001", name: "Brute Force" }])),
@@ -54,7 +54,8 @@ describe("ThreatDetectionService", () => {
   });
   it("togglePlaybookStatus toggles playbook", async () => {
     const result = await togglePlaybookStatus("PB-001", true);
-    expect(result.toggled).toBe(true);
+    expect(result.success).toBe(true);
+    expect(result.enabled).toBe(true);
   });
   it("simulateThreatIncident simulates threat", async () => {
     const result = await simulateThreatIncident("APT", "192.168.1.1", "SERVER-01");
@@ -62,7 +63,8 @@ describe("ThreatDetectionService", () => {
   });
   it("updateThreatStatus updates event status", async () => {
     const result = await updateThreatStatus("TE-001", "MITIGATED");
-    expect(result.updated).toBe(true);
+    expect(result.success).toBe(true);
+    expect(result.newStatus).toBe("MITIGATED");
   });
 });
 
@@ -87,7 +89,8 @@ describe("SbomService", () => {
   });
   it("generateAttestation generates attestation", async () => {
     const data = await generateAttestation("SB-001");
-    expect(data.signed).toBe(true);
+    expect(data.attestationId).toBe("att_001");
+    expect(data.slsaLevel).toBe("SLSA_LEVEL_3");
   });
   it("getCycloneDxManifest returns manifest", async () => {
     const data = await getCycloneDxManifest("SB-001");
