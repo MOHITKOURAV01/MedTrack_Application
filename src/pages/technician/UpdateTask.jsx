@@ -3,6 +3,7 @@ import { updateTask, getTaskById } from "../../services/MaintenanceService";
 import { getAllSpareParts } from "../../services/SparePartService";
 import { useAuth } from "../../context/AuthContext";
 import { escapeHtml } from "../../utils/escapeHtml";
+import { safeImageSrc, describeUnsafeImageSrc } from "../../utils/safeImageSrc";
 
 export default function UpdateTask({ onNavigate, task: initialTask }) {
   const { user } = useAuth();
@@ -185,10 +186,23 @@ export default function UpdateTask({ onNavigate, task: initialTask }) {
       }
     }
 
-    if (sigSrc) {
+    // escapeHtml is not enough for a URL in an attribute: the parser entity-decodes the value
+    // before the image loader sees it, so an escaped `data:image/svg+xml,<svg onload=...>` is
+    // still a live SVG document, and this print window is same-origin with the app. The scheme
+    // and media type are what decide, so the URL goes through the allowlist first.
+    const safeSig = safeImageSrc(sigSrc);
+
+    if (safeSig) {
       signatureImgHtml = `<div style="margin-top: 20px;">
         <p style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #64748b; margin-bottom: 6px;">Technician Digital Signature Sign-Off</p>
-        <img src="${escapeHtml(sigSrc)}" style="max-width: 220px; max-height: 80px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #ffffff;" alt="Signature" />
+        <img src="${escapeHtml(safeSig)}" style="max-width: 220px; max-height: 80px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #ffffff;" alt="Signature" />
+      </div>`;
+    } else if (sigSrc) {
+      // Omitting the image must not fail the export - the rest of the report is what the
+      // biomedical engineer came for, and the missing sign-off is itself worth recording.
+      signatureImgHtml = `<div style="margin-top: 20px;">
+        <p style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #64748b; margin-bottom: 6px;">Technician Digital Signature Sign-Off</p>
+        <p style="font-size: 12px; color: #b45309; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 8px 10px; margin: 0;">Signature not rendered - ${escapeHtml(describeUnsafeImageSrc(sigSrc))}.</p>
       </div>`;
     }
 
@@ -681,11 +695,19 @@ export default function UpdateTask({ onNavigate, task: initialTask }) {
                     <span className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
                       Technician Signature Sign-off
                     </span>
-                    <img
-                      src={task.signature}
-                      alt="Technician Signature"
-                      className="w-full max-w-[200px] h-auto object-contain bg-white border border-slate-700 p-2 rounded-xl mt-1"
-                    />
+                    {safeImageSrc(task.signature) ? (
+                      <img
+                        src={safeImageSrc(task.signature)}
+                        alt="Technician Signature"
+                        className="w-full max-w-[200px] h-auto object-contain bg-white border border-slate-700 p-2 rounded-xl mt-1"
+                      />
+                    ) : (
+                      // Same guard as the export. React escapes text but not a src attribute, so
+                      // this binding was the second way the same value reached an image loader.
+                      <p className="mt-1 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+                        Signature not shown - {describeUnsafeImageSrc(task.signature)}.
+                      </p>
+                    )}
                   </div>
                 )}
 
