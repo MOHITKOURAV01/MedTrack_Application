@@ -120,12 +120,19 @@ export const evaluateControlEvidence = async (controlId) => {
     const response = await API.post(`/api/auth/grc/evaluate/${controlId}`);
     return response.data;
   } catch (error) {
+    console.warn("Control evidence could not be re-evaluated:", error.message);
+    // No evidence was read, so no control passed. A stubbed "CONTROL_PASSING" with a random
+    // hash is an audit artefact asserting a result that was never computed.
     return {
-      success: true,
+      success: false,
+      offline: true,
       controlId,
-      verdict: "CONTROL_PASSING",
+      evaluationResult: "NOT_EVALUATED",
+      score: null,
+      verdict: "NOT_EVALUATED",
       timestamp: new Date().toISOString(),
-      hash: `sha256:${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`
+      hash: null,
+      message: `Control "${controlId}" was not re-evaluated - the compliance engine was unreachable.`
     };
   }
 };

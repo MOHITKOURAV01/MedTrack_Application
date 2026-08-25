@@ -95,14 +95,24 @@ export const getSiemMetrics = async () => {
     return response.data;
   } catch (error) {
     console.warn("Using fallback SIEM metrics:", error.message);
+    // The dashboard contract states ingest per *minute*. The previous stub published the
+    // same 1420 under `eventsPerSecond`, so whichever key the reader picked, one of the
+    // two was wrong by 60x - and retention is sized off this number. 1420/min is the
+    // figure that matches `totalEventsProcessedToday`.
+    const eventsPerMinute = 1420;
+
     return {
-      eventsPerSecond: 1420,
+      eventsPerMinute,
+      eventsPerSecond: Math.round((eventsPerMinute / 60) * 10) / 10,
+      alertsOpen: 3,
+      openThreatAlerts: 3,
+      meanTimeToDetectMinutes: 2.1,
       totalEventsProcessedToday: 1245890,
       activeCorrelationRules: 48,
-      openThreatAlerts: 3,
       avgCorrelationLatencyMs: 4.2,
       logIngestionGbPerDay: 48.5,
-      storageRetentionDays: 90
+      storageRetentionDays: 90,
+      offline: true
     };
   }
 };
@@ -176,10 +186,16 @@ export const exportSiemLogs = async (format = "json") => {
     const response = await API.get(`/api/auth/siem/export?format=${format}`);
     return response.data;
   } catch (error) {
+    console.warn("SIEM export was prepared locally:", error.message);
+    // The endpoint answers with a URL to fetch, so a caller that only got `success: true`
+    // had nothing to link to and no way to know why. A null `downloadUrl` alongside
+    // `offline` is the honest shape: the key is present, and it is visibly empty.
     return {
-      success: true,
+      success: false,
+      offline: true,
+      downloadUrl: null,
       format,
-      message: `Export prepared successfully in ${format.toUpperCase()} format.`
+      message: `Export could not be prepared in ${format.toUpperCase()} format - the SIEM log store was unreachable.`
     };
   }
 };

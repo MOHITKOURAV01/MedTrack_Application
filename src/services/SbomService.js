@@ -79,6 +79,7 @@ export const getAllComponents = async () => {
         componentId: "cmp_maven_001",
         artifactId: "medtrack-backend-api:v2.4.0",
         packageName: "org.springframework.boot:spring-boot-starter-security",
+        name: "org.springframework.boot:spring-boot-starter-security",
         packageVersion: "3.2.1",
         ecosystem: "MAVEN",
         licenseType: "APACHE_2_0",
@@ -90,6 +91,7 @@ export const getAllComponents = async () => {
         componentId: "cmp_maven_002",
         artifactId: "medtrack-backend-api:v2.4.0",
         packageName: "io.jsonwebtoken:jjwt-api",
+        name: "io.jsonwebtoken:jjwt-api",
         packageVersion: "0.12.3",
         ecosystem: "MAVEN",
         licenseType: "APACHE_2_0",
@@ -101,6 +103,7 @@ export const getAllComponents = async () => {
         componentId: "cmp_npm_003",
         artifactId: "medtrack-frontend-web:v1.9.2",
         packageName: "react-dom",
+        name: "react-dom",
         packageVersion: "18.2.0",
         ecosystem: "NPM",
         licenseType: "MIT",
@@ -112,6 +115,7 @@ export const getAllComponents = async () => {
         componentId: "cmp_npm_004",
         artifactId: "medtrack-analytics-worker:v3.1.0",
         packageName: "legacy-crypto-util",
+        name: "legacy-crypto-util",
         packageVersion: "1.0.4",
         ecosystem: "NPM",
         licenseType: "GPL_3_0",
@@ -133,6 +137,7 @@ export const ingestComponent = async (componentData) => {
       componentId: `cmp_${Date.now().toString().slice(-4)}`,
       artifactId: componentData.artifactId,
       packageName: componentData.packageName,
+      name: componentData.name || componentData.packageName,
       packageVersion: componentData.packageVersion,
       ecosystem: componentData.ecosystem || "MAVEN",
       licenseType: componentData.licenseType || "APACHE_2_0",
@@ -146,16 +151,27 @@ export const ingestComponent = async (componentData) => {
 // Generate Attestation Certificate
 export const generateAttestation = async (artifactId) => {
   try {
-    const response = await API.get(`/api/auth/sbom/artifacts/${artifactId}/attestation`);
+    // Minting an attestation creates a signed record on the server; it is a POST to
+    // /attest, not a GET of an /attestation resource that only exists once minted.
+    const response = await API.post(`/api/auth/sbom/artifacts/${artifactId}/attest`);
     return response.data;
   } catch (error) {
+    console.warn("Using fallback SLSA attestation stub:", error.message);
+    // Nothing was signed. The previous stub answered "PASSED_SLSA_LEVEL_3" with a random
+    // checksum, which is a compliance claim this code is in no position to make - an
+    // engineer reading it had no way to tell it from a real attestation. It now says
+    // plainly that no attestation exists.
     return {
+      attestationId: null,
       artifactId,
-      attestationSha256Checksum: `sha256:${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`,
-      complianceVerdict: "PASSED_SLSA_LEVEL_3",
-      totalComponents: 142,
-      prohibitedLicenseCount: 0,
-      timestamp: new Date().toISOString()
+      slsaLevel: "UNVERIFIED",
+      attestationSha256Checksum: null,
+      complianceVerdict: "NOT_ATTESTED",
+      totalComponents: null,
+      prohibitedLicenseCount: null,
+      timestamp: new Date().toISOString(),
+      offline: true,
+      message: "Attestation service unreachable - no provenance record was created."
     };
   }
 };
@@ -163,14 +179,24 @@ export const generateAttestation = async (artifactId) => {
 // Generate CycloneDX 1.5 JSON Manifest
 export const getCycloneDxManifest = async (artifactId) => {
   try {
-    const response = await API.get(`/api/auth/sbom/manifests/cyclonedx/${artifactId}`);
+    const response = await API.get(`/api/auth/sbom/artifacts/${artifactId}/cyclonedx`);
     return response.data;
   } catch (error) {
+    console.warn("Using fallback CycloneDX manifest:", error.message);
+    // The endpoint returns a { format, version, components } envelope around the BOM
+    // rather than a bare CycloneDX document, so the fallback carries both: the envelope
+    // keys the panel reads, and the spec keys any consumer of the raw document expects.
+    //
+    // The BOM's own revision counter was previously called `version`, which collided with
+    // the envelope's spec version. It is `bomRevision` here; nothing read it as a revision.
     return {
+      format: "CycloneDX",
+      version: "1.5",
       bomFormat: "CycloneDX",
       specVersion: "1.5",
       serialNumber: `urn:uuid:${Math.random().toString(36).substring(2)}-${Date.now()}`,
-      version: 1,
+      bomRevision: 1,
+      offline: true,
       metadata: {
         timestamp: new Date().toISOString(),
         component: {

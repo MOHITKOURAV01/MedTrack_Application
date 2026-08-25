@@ -145,7 +145,10 @@ export const simulateTextMasking = async (sampleText) => {
 
     return {
       originalText: sampleText,
+      masked,
       maskedText: masked,
+      algorithm: "PARTIAL_REDACT",
+      offline: true,
       detectionsCount: (sampleText.match(/\b\d{3}-\d{2}-\d{4}\b/g) || []).length + (sampleText.match(/\bMRN-\d{8}\b/gi) || []).length
     };
   }

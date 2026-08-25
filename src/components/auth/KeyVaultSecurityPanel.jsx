@@ -116,13 +116,25 @@ export default function KeyVaultSecurityPanel() {
     setActionLoading(true);
     try {
       const res = await rotateSecret(secretId);
+
+      // A rotation that never reached the HSM produced no new key material. Advancing the
+      // displayed version anyway made an unrotated key read as rotated in the audit column,
+      // which is the one thing this panel exists to get right.
+      if (res && res.success === false) {
+        setNotification({
+          type: "error",
+          message: res.message || `Key ${secretId} was NOT rotated - the HSM was unreachable.`
+        });
+        return;
+      }
+
       setSecrets((prev) =>
         prev.map((s) =>
           s.id === secretId
             ? {
                 ...s,
                 status: "ACTIVE",
-                version: res.newVersion || `v${parseFloat(s.version.slice(1)) + 0.1}`,
+                version: res.newKeyVersion || res.newVersion || `v${parseFloat(s.version.slice(1)) + 0.1}`,
                 lastRotated: new Date().toISOString().split("T")[0]
               }
             : s
@@ -182,7 +194,18 @@ export default function KeyVaultSecurityPanel() {
 
     setActionLoading(true);
     try {
-      await revokeSecret(secretId);
+      const res = await revokeSecret(secretId);
+
+      // Dropping the row on a revocation that did not reach the HSM is the worst available
+      // outcome: the secret is still live and it is no longer on screen to revoke again.
+      if (res && res.success === false) {
+        setNotification({
+          type: "error",
+          message: res.message || `Secret ${secretId} was NOT revoked - the HSM was unreachable. It remains active.`
+        });
+        return;
+      }
+
       setSecrets((prev) => prev.filter((s) => s.id !== secretId));
       setNotification({ type: "success", message: `Secret ${secretId} zeroized and revoked.` });
       if (inspectSecret && inspectSecret.id === secretId) {

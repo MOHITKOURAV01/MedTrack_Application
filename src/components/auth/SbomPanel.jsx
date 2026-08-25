@@ -166,6 +166,18 @@ export default function SbomPanel() {
 
     try {
       const att = await generateAttestation(artId);
+
+      // `attestationId: null` is the service saying no provenance record was created. Showing
+      // "Attestation Bundle generated" over it is a SLSA claim nothing backs.
+      if (!att || att.attestationId == null) {
+        setAttestation(null);
+        setMessage({
+          type: "error",
+          text: (att && att.message) || `No attestation was created for ${artId} - the provenance service was unreachable.`
+        });
+        return;
+      }
+
       setAttestation(att);
       setMessage({ type: "success", text: `SHA-256 Attestation Bundle generated for ${att.artifactId}!` });
     } catch (err) {

@@ -96,6 +96,17 @@ export default function GrcAuditCompliancePanel() {
     setActionLoading(true);
     try {
       const res = await evaluateControlEvidence(controlId);
+
+      // No evidence was read, so the control was not verified. Stamping VERIFIED with a null
+      // hash writes an audit record for an evaluation that never ran.
+      if (res && res.success === false) {
+        setNotification({
+          type: "error",
+          message: res.message || `Control ${controlId} was not re-evaluated - the compliance engine was unreachable.`
+        });
+        return;
+      }
+
       setEvidenceItems((prev) =>
         prev.map((item) =>
           item.controlId === controlId

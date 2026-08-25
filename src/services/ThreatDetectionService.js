@@ -96,6 +96,7 @@ export const getSoarPlaybooks = async () => {
         name: "Automated Brute-Force Shield",
         triggerEvent: "BRUTE_FORCE_ATTACK",
         status: "ENABLED",
+        enabled: true,
         autoExecute: true,
         actionsCount: 4,
         description: "Automatically blocks offending IP, revokes active refresh tokens, and enforces TOTP step-up."
@@ -105,6 +106,7 @@ export const getSoarPlaybooks = async () => {
         name: "Impossible Travel Isolation",
         triggerEvent: "IMPOSSIBLE_TRAVEL",
         status: "ENABLED",
+        enabled: true,
         autoExecute: true,
         actionsCount: 3,
         description: "Invalidates current JWT claim version and forces immediate re-authentication via WebAuthn passkey."
@@ -114,6 +116,7 @@ export const getSoarPlaybooks = async () => {
         name: "Honeypot Deception Routing",
         triggerEvent: "MALICIOUS_USER_AGENT",
         status: "ENABLED",
+        enabled: true,
         autoExecute: false,
         actionsCount: 2,
         description: "Reroutes suspicious scanner traffic to decoy honeypot synthetic API endpoints."
@@ -123,6 +126,7 @@ export const getSoarPlaybooks = async () => {
         name: "Privilege Escalation Containment",
         triggerEvent: "TOKEN_HIJACK_ATTEMPT",
         status: "ENABLED",
+        enabled: true,
         autoExecute: true,
         actionsCount: 5,
         description: "Locks compromised user credential, bumps authority version, and alerts SOC duty engineer."
@@ -152,14 +156,20 @@ export const triggerPlaybookExecution = async (playbookId, eventId) => {
 // Toggle SOAR playbook status (ENABLED / DISABLED)
 export const togglePlaybookStatus = async (playbookId, enabled) => {
   try {
-    const response = await API.patch(`/api/auth/threats/playbooks/${playbookId}`, { enabled });
+    const response = await API.patch(`/api/auth/threats/playbooks/${playbookId}/toggle`, { enabled });
     return response.data;
   } catch (error) {
+    console.warn("SOAR playbook toggle did not reach the server:", error.message);
+    // `success: true` here is a local echo, not a server acknowledgement - the playbook
+    // is still in whatever state the server last had it in. `offline` is what lets the
+    // panel say so instead of showing a flipped switch that mitigates nothing.
     return {
       success: true,
+      offline: true,
       playbookId,
+      enabled,
       status: enabled ? "ENABLED" : "DISABLED",
-      message: `Playbook status updated to ${enabled ? "ENABLED" : "DISABLED"}`
+      message: `Playbook status updated to ${enabled ? "ENABLED" : "DISABLED"} locally; the automation server was unreachable.`
     };
   }
 };
@@ -186,8 +196,11 @@ export const simulateThreatIncident = async (threatType, sourceIp, targetResourc
       MALICIOUS_USER_AGENT: 40
     };
 
+    const simulatedId = `evt_sim_${Date.now().toString().slice(-4)}`;
+
     return {
-      id: `evt_sim_${Date.now().toString().slice(-4)}`,
+      id: simulatedId,
+      incidentId: simulatedId,
       timestamp: new Date().toISOString(),
       threatType,
       severity: severityMap[threatType] || "HIGH",
@@ -205,14 +218,17 @@ export const simulateThreatIncident = async (threatType, sourceIp, targetResourc
 // Resolve or isolate a threat incident
 export const updateThreatStatus = async (eventId, newStatus) => {
   try {
-    const response = await API.patch(`/api/auth/threats/events/${eventId}`, { status: newStatus });
+    const response = await API.patch(`/api/auth/threats/events/${eventId}/status`, { status: newStatus });
     return response.data;
   } catch (error) {
+    console.warn("Threat status update did not reach the server:", error.message);
     return {
       success: true,
+      offline: true,
       eventId,
       status: newStatus,
-      message: `Incident ${eventId} status updated to ${newStatus}`
+      newStatus,
+      message: `Incident ${eventId} status updated to ${newStatus} locally; the SOC server was unreachable.`
     };
   }
 };
