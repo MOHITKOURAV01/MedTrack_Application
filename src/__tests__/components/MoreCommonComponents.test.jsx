@@ -7,10 +7,10 @@ vi.mock("lucide-react", () => ({
   ArrowUp: (props) => <svg data-testid="arrow-up" {...props} />,
 }));
 
-import Pagination from "../../../components/common/Pagination";
-import MedTrackLogo from "../../../components/common/MedTrackLogo";
-import ScrollToTopButton from "../../../components/common/ScrollToTopButton";
-import AnimatedSection from "../../../components/common/AnimatedSection";
+import Pagination from "../../components/common/Pagination";
+import MedTrackLogo from "../../components/common/MedTrackLogo";
+import ScrollToTopButton from "../../components/common/ScrollToTopButton";
+import AnimatedSection from "../../components/common/AnimatedSection";
 
 describe("Pagination", () => {
   it("renders nothing when totalPages <= 1", () => {

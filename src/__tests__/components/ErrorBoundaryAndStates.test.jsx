@@ -6,8 +6,8 @@ vi.mock("lucide-react", () => ({
   RefreshCw: (props) => <svg data-testid="refresh-cw" {...props} />,
 }));
 
-import ErrorBoundary from "../../../components/common/ErrorBoundary";
-import { LoadingSpinner, SkeletonLoader } from "../../../components/common/LoadingStates";
+import ErrorBoundary from "../../components/common/ErrorBoundary";
+import { LoadingSpinner, SkeletonLoader } from "../../components/common/LoadingStates";
 
 function Bomb() {
   throw new Error("Test bomb");

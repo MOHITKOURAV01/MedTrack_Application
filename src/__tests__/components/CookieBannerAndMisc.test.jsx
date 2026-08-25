@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-import CookieBanner from "../../../components/common/CookieBanner";
-import PriceFilterPresetGroup from "../../../components/common/PriceFilterPresetGroup";
+import CookieBanner from "../../components/common/CookieBanner";
+import PriceFilterPresetGroup from "../../components/common/PriceFilterPresetGroup";
 
 describe("CookieBanner", () => {
   beforeEach(() => {

@@ -13,6 +13,14 @@ export default function AnimatedSection({ children, animation = 'animate-fade-up
   const domRef = useRef();
 
   useEffect(() => {
+    // Without this guard the constructor throws in an environment that does not implement
+    // IntersectionObserver, the effect never completes, and `isVisible` stays false - which for
+    // this component means the content is permanently transparent rather than un-animated.
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return undefined;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -38,11 +46,19 @@ export default function AnimatedSection({ children, animation = 'animate-fade-up
     };
   }, []);
 
+  // `animation` and `delay` are unconditional; only the opacity is a function of visibility.
+  //
+  // They used to live inside the `isVisible` branch, which meant the element carried neither
+  // until the observer fired - so a caller's `animation="animate-fade-left"` was simply dropped,
+  // and the keyframes were attached in the same frame the opacity transition started rather than
+  // before it. A Tailwind animation class on a still-transparent element does nothing visible,
+  // so there is nothing to suppress by withholding it.
+  const classes = ['transition-opacity', 'duration-700', animation, delay, isVisible ? 'opacity-100' : 'opacity-0', className]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div
-      ref={domRef}
-      className={`transition-opacity duration-700 ${isVisible ? `opacity-100 ${animation} ${delay}` : 'opacity-0'} ${className}`}
-    >
+    <div ref={domRef} className={classes}>
       {children}
     </div>
   );
