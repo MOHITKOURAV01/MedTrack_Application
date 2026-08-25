@@ -125,6 +125,53 @@ describe("UpdateTask :: export PDF reflective XSS protection (#1482)", () => {
     expect(writtenHtml).toContain("&lt;img src=x onerror=alert(6)&gt;");
   });
 
+  it("still embeds a legitimate PNG signature", async () => {
+    // The guard has to reject the SVG without also breaking the feature. This is the exact shape
+    // canvas.toDataURL("image/png") produces, which is every signature the app captures itself.
+    const pngSignature =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk" +
+      "YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+    const task = { ...maliciousTask, signature: pngSignature };
+    mockGetTaskById.mockResolvedValue(task);
+    const { writtenCalls } = setupFakePrintWindow();
+
+    renderWithProviders(<UpdateTask onNavigate={() => {}} task={task} />, {
+      authValue: { user: { id: "tech-1", role: "technician", name: "Tech" } },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Export to PDF/)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/Export to PDF/));
+
+    const writtenHtml = writtenCalls[0];
+    expect(writtenHtml).toContain(`<img src="${pngSignature}"`);
+    expect(writtenHtml).not.toContain("Signature not rendered");
+  });
+
+  it("prints a reason in place of a rejected signature rather than failing the export", async () => {
+    mockGetTaskById.mockResolvedValue(maliciousTask);
+    const { writtenCalls } = setupFakePrintWindow();
+
+    renderWithProviders(<UpdateTask onNavigate={() => {}} task={maliciousTask} />, {
+      authValue: { user: { id: "tech-1", role: "technician", name: "Tech" } },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Export to PDF/)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/Export to PDF/));
+
+    const writtenHtml = writtenCalls[0];
+    // The rest of the report is what the engineer came for; a missing sign-off is recorded, not
+    // a reason to produce nothing.
+    expect(writtenHtml).toContain("Signature not rendered");
+    expect(writtenHtml).toContain("Technician Maintenance Notes");
+    expect(writtenHtml).not.toContain("<img src=\"data:image/svg+xml");
+  });
+
   it("keeps the report's own safe script block intact while neutralizing payloads", async () => {
     mockGetTaskById.mockResolvedValue(maliciousTask);
     const { writtenCalls } = setupFakePrintWindow();
