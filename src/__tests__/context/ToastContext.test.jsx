@@ -88,10 +88,52 @@ describe("ToastContext", () => {
     expect(() => { act(() => { toastRef.removeToast(99999); }); }).not.toThrow();
   });
 
-  it("useToast returns null when used outside ToastProvider", () => {
+  // This used to assert `toastRef` was null, which pinned the defect rather than a requirement:
+  // null is what made `const { addToast } = useToast()` throw during render and take the whole
+  // page down with it. The requirement is that an absent toast system degrades to silence.
+  it("useToast returns a usable no-op outside ToastProvider", () => {
     let toastRef;
     render(<TestConsumer onToast={(t) => { toastRef = t; }} />);
-    expect(toastRef).toBeNull();
+    expect(toastRef).not.toBeNull();
+    expect(toastRef.toasts).toEqual([]);
+    expect(typeof toastRef.addToast).toBe("function");
+    expect(typeof toastRef.removeToast).toBe("function");
+    expect(toastRef.isAvailable).toBe(false);
+  });
+
+  it("a component that destructures useToast renders outside a provider", () => {
+    // The exact call shape of all five consumers, and the one that threw.
+    function Destructures() {
+      const { addToast } = useToast();
+      return <button onClick={() => addToast("hi")}>Save</button>;
+    }
+    expect(() => render(<Destructures />)).not.toThrow();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+  });
+
+  it("the no-op addToast and removeToast are safe to call", () => {
+    let toastRef;
+    render(<TestConsumer onToast={(t) => { toastRef = t; }} />);
+    expect(() => toastRef.addToast("ignored", "error", 1000)).not.toThrow();
+    expect(toastRef.addToast("ignored")).toBeNull();
+    expect(() => toastRef.removeToast(1)).not.toThrow();
+    expect(toastRef.toasts).toEqual([]);
+  });
+
+  it("the fallback keeps a stable identity across renders", () => {
+    // Built per call it would be a fresh object every render, re-running every effect that lists
+    // the toast API in its dependencies - a render loop for anything that toasts from an effect.
+    const seen = [];
+    const { rerender } = render(<TestConsumer onToast={(t) => seen.push(t)} />);
+    rerender(<TestConsumer onToast={(t) => seen.push(t)} />);
+    expect(seen.length).toBeGreaterThanOrEqual(2);
+    expect(seen[0]).toBe(seen[seen.length - 1]);
+  });
+
+  it("isAvailable is true inside a provider", () => {
+    let toastRef;
+    render(<ToastProvider><TestConsumer onToast={(t) => { toastRef = t; }} /></ToastProvider>);
+    expect(toastRef.isAvailable).toBe(true);
   });
 
   it("addToast sets duration on toast object", () => {
