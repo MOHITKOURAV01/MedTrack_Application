@@ -421,25 +421,66 @@ export const ROUTES = [
 ];
 
 
+/** The longest slug a route declares, used to order the prefix scan below. */
+const longestSlug = (route) =>
+  route.slugs.reduce((longest, slug) => Math.max(longest, slug.length), 0);
+
 /**
  * Routes carrying a dynamic path segment, e.g. `/edit-equipment/EQ-1001`.
  *
- * Ordered longest-prefix-first so `blog-post` is considered before any shorter prefix could
- * shadow it.
+ * Ordered longest-prefix-first so a route registered under a slug that begins with another route's
+ * slug is considered first. This used to be a bare `filter`, which preserves declaration order and
+ * sorts nothing, under a comment claiming the ordering as a guarantee. No two slugs currently shadow
+ * each other, so it was latent - but the next parameterised route added under an existing prefix
+ * would have taken the wrong branch, and silently.
  */
-const PARAMETERISED_ROUTES = ROUTES.filter((route) => route.param);
+const PARAMETERISED_ROUTES = ROUTES.filter((route) => route.param).sort(
+  (a, b) => longestSlug(b) - longestSlug(a)
+);
 
-/** slug -> page key. Built once; duplicates are a build failure, see scripts/check-routes.js. */
-export const SLUG_TO_PAGE = ROUTES.reduce((accumulator, route) => {
-  route.slugs.forEach((slug) => {
-    // A parameterised route shares its prefix with its list page (`blog` and `blog/:slug`);
-    // the bare slug belongs to the list page, so never let the detail page claim it.
-    if (!route.param) {
-      accumulator[slug] = route.page;
-    }
+/**
+ * slug -> page key. Built once; duplicates are a build failure, see scripts/check-routes.js.
+ *
+ * Built in two passes, because the two kinds of route have different claims on a bare slug:
+ *
+ *   1. A route without a parameter owns its slug outright.
+ *   2. A parameterised route claims its bare slug only where no list page has taken it.
+ *
+ * The second pass is the fix for #25. Parameterised routes used to be excluded entirely, on the
+ * reasoning that a detail route shares its prefix with its list page and the bare slug belongs to
+ * the list page. That is right for `blog`, which has one. Five of the six had no list page at all,
+ * so nothing claimed their bare slug and it fell through to `not-found` - while `buildPath` happily
+ * emitted that same bare slug whenever it was called without data:
+ *
+ *   buildPath("update-task", null)  ->  "/update-task"  ->  resolvePath  ->  "not-found"
+ *
+ * App.jsx sets `currentPage` in state *and* pushes that URL, so the page rendered correctly and the
+ * URL was dead. The two only diverged on the next reload - which is when a technician who reached
+ * "Update Task" from the navbar lost the page by pressing F5.
+ *
+ * A detail page reached without its record renders its own empty state: UpdateTask and OrderStatus
+ * both open an id-search form, which is a perfectly good destination and is what the navbar links
+ * were already relying on.
+ */
+export const SLUG_TO_PAGE = (() => {
+  const table = {};
+
+  ROUTES.filter((route) => !route.param).forEach((route) => {
+    route.slugs.forEach((slug) => {
+      table[slug] = route.page;
+    });
   });
-  return accumulator;
-}, {});
+
+  ROUTES.filter((route) => route.param).forEach((route) => {
+    route.slugs.forEach((slug) => {
+      if (!Object.prototype.hasOwnProperty.call(table, slug)) {
+        table[slug] = route.page;
+      }
+    });
+  });
+
+  return table;
+})();
 
 /** page key -> route definition. */
 export const PAGE_TO_ROUTE = ROUTES.reduce((accumulator, route) => {

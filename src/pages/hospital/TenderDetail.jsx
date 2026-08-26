@@ -28,6 +28,10 @@ const TenderDetail = ({ tenderId, onNavigate }) => {
   useEffect(() => {
     if (tenderId) {
       fetchAll();
+    } else {
+      // Reached without a tender id (`/tender`), there is nothing to fetch and the initial
+      // `loading: true` would otherwise spin for ever. Fall through to the empty state.
+      setLoading(false);
     }
   }, [tenderId]);
 

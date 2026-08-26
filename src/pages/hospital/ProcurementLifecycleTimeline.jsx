@@ -10,7 +10,10 @@ const ProcurementLifecycleTimeline = ({ requestId, onNavigate }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Reached without a request id (`/procurement-timeline`), there is nothing to fetch and the
+    // initial `loading: true` would otherwise spin for ever. Fall through to the empty state.
     if (requestId) fetchAllData();
+    else setLoading(false);
   }, [requestId]);
 
   const fetchAllData = async () => {
