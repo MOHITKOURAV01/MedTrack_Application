@@ -6,6 +6,12 @@ import { ROUTES, PUBLIC, AUTHENTICATED } from "../../routes/routeRegistry";
 import { PAGE_LABELS } from "./pageDirectory";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+// The palette gates destinations on the *effective* permission set, the same one the navbar and the
+// router use. AuthContext also exposes a `hasPermission`, but it reads the raw authority list, which
+// is empty until the authority fetch answers, empty for the whole session on a demo account, and
+// empty for good if the backend is unreachable - so gating on it hid every permissioned page the
+// navbar was offering in the same session. See src/hooks/usePermissions.js.
+import usePermissions from "../../hooks/usePermissions";
 
 
 /**
@@ -36,8 +42,8 @@ const PAGE_INDEX = ROUTES.filter(
   label: PAGE_LABELS[route.page]?.label || humanize(route.page),
   keywords: PAGE_LABELS[route.page]?.keywords || "",
   access: route.access,
-  // Set by the permission-gating work once merged; filtering is a no-op until
-  // then, so the palette stays correct on both sides of that change.
+  // The fine-grained permission the route declares, if any. Nine routes carry one; the rest are
+  // role-gated only and are listed for anyone whose role admits them.
   permission: route.permission,
 }));
 
@@ -67,9 +73,16 @@ function matchScore(query, entry) {
  * actually reach (role access + permission gating) and run quick actions
  * (theme toggle, sign out, back to top). Fully keyboard-driven: arrows move,
  * Enter selects, Esc closes.
+ *
+ * "Can actually reach" means the same two checks AppRoutes applies, in the same order and against
+ * the same inputs - `canAccess` mirrors its role gate, and `hasPermission` comes from the same
+ * merged permission set. A destination this palette lists must open, and a destination it hides
+ * must not: an entry that 403s is a broken search result, and a hidden entry that would have worked
+ * reads to the user as the page having been deleted.
  */
 export default function CommandPalette({ open, onClose, onNavigate }) {
-  const { user, logout, hasPermission } = useAuth();
+  const { user, logout } = useAuth();
+  const { hasPermission } = usePermissions();
   const { theme, toggleTheme } = useTheme();
 
   const [query, setQuery] = useState("");
