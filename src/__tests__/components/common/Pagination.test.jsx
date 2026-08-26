@@ -23,9 +23,12 @@ describe("Pagination", () => {
   });
 
   it("highlights the current page", () => {
+    // Asserted through aria-current rather than a Tailwind class. The class version tested the
+    // stylesheet, not the contract - it passed whatever the theme did, and would have kept passing
+    // while the control was invisible in dark mode, which is exactly what #26 was.
     render(<Pagination page={1} totalPages={3} onPageChange={() => {}} />);
-    const page2Btn = screen.getByText("2");
-    expect(page2Btn.className).toContain("bg-blue-600");
+    expect(screen.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Page 1" })).not.toHaveAttribute("aria-current");
   });
 
   it("disables Previous button on first page", () => {
