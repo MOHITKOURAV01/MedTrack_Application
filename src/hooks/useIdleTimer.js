@@ -33,6 +33,10 @@ export const DEFAULT_TICK_MS = 1000;
  *   who leaves the tab open and walks away is still locked out.
  * - `onLock` fires exactly once when the countdown reaches zero (the internal
  *   interval stops itself), after which the parent decides what to do.
+ * - Enabling the hook - including re-enabling it for a second session in the
+ *   same page load - starts a full idle window rather than continuing to
+ *   measure against the previous session's last interaction.
+ * - `reset()` re-arms as well as resets, so it is safe to call after a lock.
  *
  * The `enabled` flag only controls whether listeners/timers are installed, so
  * the hook can be called unconditionally in a component that sometimes has no
@@ -52,6 +56,12 @@ export default function useIdleTimer({
 }) {
   const [remainingMs, setRemainingMs] = useState(timeoutMs);
   const lastActivityRef = useRef(Date.now());
+
+  // Bumped to re-run the effect below and install a fresh interval. The countdown stops its own
+  // interval when it reaches zero, so without this a timer that has fired once is never checked
+  // again for the life of the component - and SessionGuard wraps the whole application, so that is
+  // the life of the page.
+  const [armToken, setArmToken] = useState(0);
   // Held in a ref so a new onLock identity (an inline arrow in the caller)
   // does not tear down and recreate the interval on every render.
   const onLockRef = useRef(onLock);
@@ -60,12 +70,29 @@ export default function useIdleTimer({
   const reset = useCallback(() => {
     lastActivityRef.current = Date.now();
     setRemainingMs(timeoutMs);
+    // Re-arm as well as reset. "Stay signed in" pressed after the countdown has already reached
+    // zero would otherwise restore the number on screen while leaving the session unmonitored.
+    setArmToken((token) => token + 1);
   }, [timeoutMs]);
 
   useEffect(() => {
     if (!enabled) {
       return undefined;
     }
+
+    // Activating starts a *full* idle window.
+    //
+    // lastActivityRef survives the enabled -> false -> true transition, because SessionGuard is
+    // never unmounted - only `user` changes. So after an idle auto-lock the reference was left at a
+    // timestamp one whole timeout in the past, and the interval installed for the *next* session
+    // measured against it: one tick after signing back in, `elapsed` was still over the timeout and
+    // onLock fired again, on a session seconds old.
+    //
+    // The activity listeners could not prevent it either. They are installed only once `enabled` is
+    // true, which is after the sign-in click has already happened, so the click that created the
+    // session was never observed by the hook about to end it.
+    lastActivityRef.current = Date.now();
+    setRemainingMs(timeoutMs);
 
     const bump = () => {
       const now = Date.now();
@@ -108,7 +135,7 @@ export default function useIdleTimer({
       document.removeEventListener("visibilitychange", onVisibilityChange);
       clearInterval(interval);
     };
-  }, [enabled, timeoutMs, tickMs]);
+  }, [enabled, timeoutMs, tickMs, armToken]);
 
   return { remainingMs, reset };
 }
