@@ -209,9 +209,26 @@ describe("route entry uniqueness", () => {
     expect(shared).toEqual([]);
   });
 
-  it("builds SLUG_TO_PAGE from every static slug", () => {
-    const staticSlugs = ROUTES.filter((route) => !route.param).flatMap((route) => route.slugs);
-    expect(Object.keys(SLUG_TO_PAGE).sort()).toEqual([...staticSlugs].sort());
+  it("builds SLUG_TO_PAGE from every slug, static and parameterised", () => {
+    // This used to assert the static slugs *only*, which is what #25 was: a parameterised route's
+    // bare slug was in no table, so `/update-task` resolved to not-found while buildPath was
+    // emitting it. Every slug now resolves; a list page still wins any collision, asserted below.
+    const everySlug = ROUTES.flatMap((route) => route.slugs);
+    expect(Object.keys(SLUG_TO_PAGE).sort()).toEqual([...new Set(everySlug)].sort());
+  });
+
+  it("gives a shared slug to the list page rather than the detail route", () => {
+    // `blog` and `blog/:slug` legitimately share a prefix. The bare slug belongs to the list page.
+    const staticSlugs = new Set(
+      ROUTES.filter((route) => !route.param).flatMap((route) => route.slugs)
+    );
+    for (const route of ROUTES.filter((r) => r.param)) {
+      for (const slug of route.slugs) {
+        if (staticSlugs.has(slug)) {
+          expect(SLUG_TO_PAGE[slug], `slug "${slug}"`).not.toBe(route.page);
+        }
+      }
+    }
   });
 });
 

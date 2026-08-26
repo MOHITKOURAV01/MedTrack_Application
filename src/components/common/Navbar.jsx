@@ -109,8 +109,12 @@ export default function Navbar({ onNavigate, currentPage }) {
         ]
       : user.role === "technician"
       ? [
-          { label: "My Tasks", page: "tasks" },
-          { label: "Update Task", page: "update-task" },
+          // Tagged with the permissions their routes declare, like every other link in this block.
+          // Without them filterNavLinks has nothing to filter on, so a technician whose
+          // UPDATE_MAINTENANCE was revoked through the RBAC console still saw "Update Task" and
+          // landed on Access Denied - the outcome the comment above says the design prevents.
+          { label: "My Tasks", page: "tasks", permission: "READ_MAINTENANCE" },
+          { label: "Update Task", page: "update-task", permission: "UPDATE_MAINTENANCE" },
         ]
       : [
           { label: "Orders", page: "orders", permission: "READ_ORDERS" },
