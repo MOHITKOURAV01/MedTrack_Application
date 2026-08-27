@@ -70,7 +70,7 @@ function matchScore(query, entry) {
  */
 export default function CommandPalette({ open, onClose, onNavigate }) {
   const { user, logout, hasPermission } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, isSystem, followSystem } = useTheme();
 
   const [query, setQuery] = useState("");
   const [activeRow, setActiveRow] = useState(0);
@@ -111,6 +111,18 @@ export default function CommandPalette({ open, onClose, onNavigate }) {
       keywords: "theme dark light appearance",
       run: toggleTheme,
     });
+    // Offered only once a theme has actually been chosen. The provider follows the OS by default,
+    // so for most visitors this action would be a no-op advertising a state they are already in.
+    if (!isSystem) {
+      actions.push({
+        kind: "item",
+        type: "action",
+        id: "follow-system-theme",
+        label: "Use my system theme",
+        keywords: "system os automatic appearance follow default theme",
+        run: followSystem,
+      });
+    }
     if (user) {
       actions.push({
         kind: "item",
@@ -142,7 +154,7 @@ export default function CommandPalette({ open, onClose, onNavigate }) {
       rows.push(...matchedActions);
     }
     return rows;
-  }, [query, user, theme, toggleTheme, logout, hasPermission]);
+  }, [query, user, theme, toggleTheme, isSystem, followSystem, logout, hasPermission]);
 
   const selectableIndexes = useMemo(
     () => rows.map((row, index) => (row.kind === "item" ? index : -1)).filter((index) => index >= 0),
