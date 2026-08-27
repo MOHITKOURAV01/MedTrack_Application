@@ -142,18 +142,22 @@ function AppContent() {
 
 export default function App() {
   // ErrorBoundary is outermost on purpose. It only catches errors thrown inside its own subtree, so
-  // while it sat *inside* AuthProvider a throw during that provider's render - which is exactly what
-  // an unreadable sessionStorage value produced - unmounted the entire tree to a blank page with
+  // while it sat *inside* AuthProvider and ThemeProvider a throw during either provider's render -
+  // which is exactly what an unreadable sessionStorage value produced, and what a localStorage
+  // blocked by browser policy still produces - unmounted the entire tree to a blank page with
   // nothing left that could catch it or offer a way out.
+  //
+  // It was not actually outermost. It was third in, so the failure this comment describes was still
+  // uncaught. It is outermost now.
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <ErrorBoundary>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider>
           <ToastProvider>
             <AppContent />
           </ToastProvider>
-        </ErrorBoundary>
-      </ThemeProvider>
-    </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
