@@ -2,6 +2,8 @@
  * ActivityCenterDemoEvents.js - Demo event repository and offline fallback helper.
  */
 
+import { MISS, readJson, writeJson } from '../../utils/safeLocalStorage';
+
 export const DEMO_EVENTS = [
   {
     id: 'evt-001',
@@ -65,24 +67,31 @@ export const DEMO_EVENTS = [
   },
 ];
 
+/** Storage key holding the locally held activity feed. */
+export const EVENTS_STORAGE_KEY = 'medtrack_activity_events';
+
+/**
+ * Reads the locally stored events, seeding the demo feed only when nothing usable is stored.
+ *
+ * An empty array is a stored value, not a miss - it is what the feed writes once the user clears
+ * every event - so it is returned as-is rather than triggering a re-seed. See `getLocalRules` in
+ * PreventiveMaintenanceDemoRules.js, which had the identical defect.
+ *
+ * @returns {Array} the stored events, or {@link DEMO_EVENTS}
+ */
 export const getLocalDemoEvents = () => {
-  try {
-    const saved = localStorage.getItem('medtrack_activity_events');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch (e) {
-    console.warn('Failed to parse local demo events', e);
+  const stored = readJson(EVENTS_STORAGE_KEY, { validate: Array.isArray });
+  if (stored !== MISS) {
+    return stored;
   }
-  localStorage.setItem('medtrack_activity_events', JSON.stringify(DEMO_EVENTS));
+  writeJson(EVENTS_STORAGE_KEY, DEMO_EVENTS);
   return DEMO_EVENTS;
 };
 
-export const saveLocalDemoEvents = (events) => {
-  try {
-    localStorage.setItem('medtrack_activity_events', JSON.stringify(events));
-  } catch (e) {
-    console.warn('Failed to save local demo events', e);
-  }
-};
+/**
+ * Persists the event feed, including an empty one.
+ *
+ * @param {Array} events
+ * @returns {boolean} whether the write succeeded
+ */
+export const saveLocalDemoEvents = (events) => writeJson(EVENTS_STORAGE_KEY, events);
