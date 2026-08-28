@@ -178,7 +178,7 @@ export default function SurgicalRoboticsHub() {
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [instFilter, setInstFilter] = useState("All");
 
-  const { toasts, toast } = useToastTray();
+  const { toasts, toast, removeToast } = useToastTray();
 
   const [robots, setRobots] = useState(() => ROBOTS.map((r) => ({ ...r })));
   const [orList, setOrList] = useState(() => OR_SCHEDULE.map((o) => ({ ...o })));
@@ -274,7 +274,7 @@ export default function SurgicalRoboticsHub() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       {/* toast stack */}
-      <ToastTray toasts={toasts} />
+      <ToastTray toasts={toasts} onDismiss={removeToast} />
 
       {/* header */}
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">

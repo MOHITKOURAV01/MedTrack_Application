@@ -331,7 +331,7 @@ export default function SterileProcessingHub() {
   const [stageFilter, setStageFilter] = useState("All");
   const [releaseFilter, setReleaseFilter] = useState("All");
 
-  const { toasts, toast } = useSeverityToasts();
+  const { toasts, toast, removeToast } = useSeverityToasts();
 
   const [trays, setTrays] = useState(() => TRAYS.map((tray) => ({ ...tray })));
   const [loads, setLoads] = useState(() => LOADS.map((load) => ({ ...load })));
@@ -504,7 +504,7 @@ export default function SterileProcessingHub() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
-      <SeverityToastTray toasts={toasts} />
+      <SeverityToastTray toasts={toasts} onDismiss={removeToast} />
 
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">

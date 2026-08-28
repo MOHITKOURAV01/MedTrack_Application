@@ -174,7 +174,7 @@ export default function PharmacovigilanceHub() {
   const [tierFilter, setTierFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  const { toasts, toast } = useToastTray();
+  const { toasts, toast, removeToast } = useToastTray();
 
   const [events, setEvents] = useState(() => ADVERSE_EVENTS.map((a) => ({ ...a })));
   const [signals, setSignals] = useState(() => SIGNALS.map((s) => ({ ...s })));
@@ -272,7 +272,7 @@ export default function PharmacovigilanceHub() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       {/* toast stack */}
-      <ToastTray toasts={toasts} />
+      <ToastTray toasts={toasts} onDismiss={removeToast} />
 
       {/* header */}
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">

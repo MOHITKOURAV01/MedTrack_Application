@@ -355,7 +355,7 @@ export default function OncologyInfusionHub() {
   const [vesicantFilter, setVesicantFilter] = useState("All");
   const [gradeFilter, setGradeFilter] = useState("All");
 
-  const { toasts, toast } = useSeverityToasts();
+  const { toasts, toast, removeToast } = useSeverityToasts();
 
   const [chairs, setChairs] = useState(() => CHAIRS.map((chair) => ({ ...chair })));
   const [preparations, setPreparations] = useState(() => PREPARATIONS.map((preparation) => ({ ...preparation })));
@@ -521,7 +521,7 @@ export default function OncologyInfusionHub() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
-      <SeverityToastTray toasts={toasts} />
+      <SeverityToastTray toasts={toasts} onDismiss={removeToast} />
 
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">

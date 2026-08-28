@@ -171,7 +171,7 @@ export default function LabAutomationHub() {
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [qcFilter, setQcFilter] = useState("All");
 
-  const { toasts, toast } = useToastTray();
+  const { toasts, toast, removeToast } = useToastTray();
 
   const [analyzers, setAnalyzers] = useState(() => ANALYZERS.map((a) => ({ ...a })));
   const [samples, setSamples] = useState(() => SAMPLES.map((s) => ({ ...s })));
@@ -268,7 +268,7 @@ export default function LabAutomationHub() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       {/* toast stack */}
-      <ToastTray toasts={toasts} />
+      <ToastTray toasts={toasts} onDismiss={removeToast} />
 
       {/* header */}
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">

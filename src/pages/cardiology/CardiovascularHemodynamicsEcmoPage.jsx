@@ -215,7 +215,7 @@ function calcDeltaP(pPre, pPost) {
 }
 
 export default function CardiovascularHemodynamicsEcmoPage() {
-  const { toasts, pushToast, removeToast } = useKindToasts();
+  const { toasts, addToast, removeToast } = useKindToasts();
 
   const [patients, setPatients] = useState(INITIAL_PATIENTS);
   const [selectedId, setSelectedId] = useState(INITIAL_PATIENTS[0].id);
@@ -424,12 +424,12 @@ export default function CardiovascularHemodynamicsEcmoPage() {
         };
       })
     );
-    pushToast("success", `Hemodynamic parameters for ${modalPatient.name} adjusted successfully.`);
+    addToast(`Hemodynamic parameters for ${modalPatient.name} adjusted successfully.`, "info");
     setActiveModal(null);
   };
 
   const triggerEmergencyProtocol = (protocolName) => {
-    pushToast("error", `🚨 EMERGENCY PROTOCOL TRIGGERED: ${protocolName} - Notifications dispatched to Cardiac Arrest & Perfusion Teams!`);
+    addToast(`🚨 EMERGENCY PROTOCOL TRIGGERED: ${protocolName} - Notifications dispatched to Cardiac Arrest & Perfusion Teams!`, "error");
     setActiveModal(null);
   };
 
@@ -472,7 +472,7 @@ export default function CardiovascularHemodynamicsEcmoPage() {
     });
 
     downloadCsv(exportData, "Cardiovascular_Hemodynamics_ECMO_Telemetry_Export.csv");
-    pushToast("info", "Clinical hemodynamics & ECMO dataset exported as CSV.");
+    addToast("Clinical hemodynamics & ECMO dataset exported as CSV.", "info");
   };
 
   const filteredPatients = useMemo(() => {
@@ -1162,7 +1162,7 @@ export default function CardiovascularHemodynamicsEcmoPage() {
               <button
                 type="button"
                 onClick={() => {
-                  pushToast("success", `Weaning trial initiated for ${activePatient.name}. Flow reduced to 2.0 L/min with ACT surveillance.`);
+                  addToast(`Weaning trial initiated for ${activePatient.name}. Flow reduced to 2.0 L/min with ACT surveillance.`, "info");
                   setActiveModal(null);
                 }}
                 className="rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 text-xs font-bold shadow-lg"

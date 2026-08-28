@@ -208,7 +208,7 @@ export default function SecurityComplianceHub() {
   const [postureFilter, setPostureFilter] = useState("All");
   const [keyStatusFilter, setKeyStatusFilter] = useState("All");
 
-  const { toasts, toast } = useToastTray();
+  const { toasts, toast, removeToast } = useToastTray();
 
   const [identities, setIdentities] = useState(() => IDENTITIES.map((u) => ({ ...u })));
   const [keys, setKeys] = useState(() => KEYS.map((k) => ({ ...k })));
@@ -310,7 +310,7 @@ export default function SecurityComplianceHub() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       {/* toast stack */}
-      <ToastTray toasts={toasts} />
+      <ToastTray toasts={toasts} onDismiss={removeToast} />
 
       {/* header */}
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">

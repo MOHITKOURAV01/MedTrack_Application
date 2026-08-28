@@ -164,7 +164,7 @@ export default function EndocrinologyMetabolicHub() {
   const [thyroidFilter, setThyroidFilter] = useState("All");
   const [riskFilter, setRiskFilter] = useState("All");
 
-  const { toasts, toast } = useToastTray();
+  const { toasts, toast, removeToast } = useToastTray();
 
   const [diabetesPatients, setDiabetesPatients] = useState(() => DIABETES_PATIENTS.map((p) => ({ ...p })));
   const [thyroidPatients, setThyroidPatients] = useState(() => THYROID_PATIENTS.map((t) => ({ ...t })));
@@ -248,7 +248,7 @@ export default function EndocrinologyMetabolicHub() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
-      <ToastTray toasts={toasts} />
+      <ToastTray toasts={toasts} onDismiss={removeToast} />
 
       {/* header */}
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">
