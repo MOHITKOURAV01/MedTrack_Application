@@ -486,7 +486,7 @@ export default function AnesthesiologyPacuHub() {
                             <p className="mt-0.5 text-[11px] text-slate-400">{c.id} · {c.room} · {c.procedure}</p>
                           </button>
                         </div>
-                        <Badge tone={c.phase}>{c.phase}</Badge>
+                        <Badge>{c.phase}</Badge>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
                         <span className="rounded-md border border-slate-700 bg-slate-950/60 px-2 py-1 text-slate-300">ASA {c.asa}</span>
@@ -546,7 +546,7 @@ export default function AnesthesiologyPacuHub() {
                             <p className="mt-0.5 text-[11px] text-slate-400">{p.id} · from {p.fromOr} · {p.nurse}</p>
                           </button>
                         </div>
-                        <Badge tone={readiness.verdict}>{readiness.verdict}</Badge>
+                        <Badge tone={readiness.tone}>{readiness.verdict}</Badge>
                       </div>
                       <div className="mt-3 flex items-center gap-3">
                         <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-700 bg-slate-950/60">
@@ -624,7 +624,7 @@ export default function AnesthesiologyPacuHub() {
                             <p className="mt-0.5 text-[11px] text-slate-400">{b.id} · {b.block}</p>
                           </button>
                         </div>
-                        {b.catheter ? <Badge tone={`Catheter d${b.dwellDays}`}>Catheter</Badge> : <Badge tone="Clear">Single shot</Badge>}
+                        {b.catheter ? <Badge tone="amber">Catheter d{b.dwellDays}</Badge> : <Badge tone="green">Single shot</Badge>}
                       </div>
                       <div className="mt-3 space-y-2">
                         <div className="flex items-center justify-between text-[11px]">
