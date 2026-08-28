@@ -111,7 +111,7 @@ export default function NeonatalNicuHub() {
   const [speed, setSpeed] = useState(1);
   const [tick, setTick] = useState(0);
   const [modal, setModal] = useState(null);
-  const { toasts, addToast } = useKindToasts();
+  const { toasts, addToast, removeToast } = useKindToasts();
   const speedRef = useRef(1);
   const pausedRef = useRef(false);
 
@@ -729,7 +729,7 @@ export default function NeonatalNicuHub() {
       {renderModal()}
 
       {/* toasts */}
-      <KindToastTray toasts={toasts} />
+      <KindToastTray toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

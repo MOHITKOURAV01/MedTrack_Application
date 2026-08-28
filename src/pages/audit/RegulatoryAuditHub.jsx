@@ -171,7 +171,7 @@ export default function RegulatoryAuditHub() {
   const [riskFilter, setRiskFilter] = useState("All");
   const [frameworkFilter, setFrameworkFilter] = useState("All");
 
-  const { toasts, toast } = useToastTray();
+  const { toasts, toast, removeToast } = useToastTray();
 
   const [artifacts, setArtifacts] = useState(() => PROVENANCE.map((a) => ({ ...a })));
   const [events, setEvents] = useState(() => AUDIT_EVENTS.map((e) => ({ ...e })));
@@ -268,7 +268,7 @@ export default function RegulatoryAuditHub() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       {/* toast stack */}
-      <ToastTray toasts={toasts} critical={["Critical", "Flagged"]} />
+      <ToastTray toasts={toasts} critical={["Critical", "Flagged"]} onDismiss={removeToast} />
 
       {/* header */}
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">

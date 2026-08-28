@@ -190,7 +190,7 @@ function calcFiltrationFraction(repPre, netUfr, qb) {
 }
 
 export default function NephrologyCrrtStationPage() {
-  const { toasts, addToast } = useKindToasts();
+  const { toasts, addToast, removeToast } = useKindToasts();
 
   const [patients, setPatients] = useState(INITIAL_CRRT_PATIENTS);
   const [selectedId, setSelectedId] = useState(INITIAL_CRRT_PATIENTS[0].id);
@@ -412,7 +412,7 @@ export default function NephrologyCrrtStationPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 font-sans selection:bg-cyan-500/30">
-      <KindToastTray toasts={toasts} />
+      <KindToastTray toasts={toasts} onDismiss={removeToast} />
 
       {/* Top Header */}
       <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-800/80 pb-6">

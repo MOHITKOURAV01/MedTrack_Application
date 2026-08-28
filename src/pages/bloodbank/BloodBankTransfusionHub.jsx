@@ -389,7 +389,7 @@ export default function BloodBankTransfusionHub() {
   const [urgencyFilter, setUrgencyFilter] = useState("All");
   const [severityFilter, setSeverityFilter] = useState("All");
 
-  const { toasts, toast } = useSeverityToasts();
+  const { toasts, toast, removeToast } = useSeverityToasts();
 
   const [units, setUnits] = useState(() => UNITS.map((unit) => ({ ...unit })));
   const [requests, setRequests] = useState(() => REQUESTS.map((request) => ({ ...request, assigned: [] })));
@@ -609,7 +609,7 @@ export default function BloodBankTransfusionHub() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
-      <SeverityToastTray toasts={toasts} />
+      <SeverityToastTray toasts={toasts} onDismiss={removeToast} />
 
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">

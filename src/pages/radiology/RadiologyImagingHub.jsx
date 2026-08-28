@@ -188,7 +188,7 @@ export default function RadiologyImagingHub() {
   const [modalityFilter, setModalityFilter] = useState("All");
   const [aiFilter, setAiFilter] = useState("All");
 
-  const { toasts, toast } = useToastTray();
+  const { toasts, toast, removeToast } = useToastTray();
 
   const [studies, setStudies] = useState(() => STUDIES.map((s) => ({ ...s })));
   const [modalities, setModalities] = useState(() => MODALITIES.map((m) => ({ ...m })));
@@ -285,7 +285,7 @@ export default function RadiologyImagingHub() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       {/* toast stack */}
-      <ToastTray toasts={toasts} />
+      <ToastTray toasts={toasts} onDismiss={removeToast} />
 
       {/* header */}
       <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-5 backdrop-blur">
