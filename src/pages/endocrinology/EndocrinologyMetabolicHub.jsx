@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Meter } from "../../components/common/MeterBar";
 import {
   Activity, AlertTriangle, ArrowRight, Award, Bell, Bot, Calendar, CheckCircle2,
   ChevronRight, Clock, Cpu, Database, Download, Droplet, Eye, FileText, Filter,
@@ -68,12 +69,6 @@ const toneOf = (v) => {
 };
 
 const Badge = ({ children }) => <ToneBadge toneOf={toneOf} tone={toneOf(children)}>{children}</ToneBadge>;
-
-const Meter = ({ value, color = "bg-emerald-400" }) => (
-  <div className="h-1.5 w-24 rounded-full bg-slate-800">
-    <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, Math.max(0, value))}%` }} />
-  </div>
-);
 
 /* ------------------------------------------------------------------ */
 /*  Live simulation hook                                               */
