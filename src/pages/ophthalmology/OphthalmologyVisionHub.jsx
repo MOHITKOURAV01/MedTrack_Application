@@ -676,10 +676,10 @@ export default function OphthalmologyVisionHub() {
         {/* toolbar */}
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search units, lasers, patients, lenses…" />
-          {tab === "imaging" && <FilterChips options={["All", "Running", "Idle", "Maintenance"]} value={unitFilter} onChange={setUnitFilter} />}
-          {tab === "lasers" && <FilterChips options={["All", "Out of service", "Advisory", "Clear"]} value={laserFilter} onChange={setLaserFilter} />}
-          {tab === "screening" && <FilterChips options={["All", "Referable", "AI disagreement", "R3", "R2"]} value={gradeFilter} onChange={setGradeFilter} />}
-          {tab === "biometry" && <FilterChips options={["All", "Verified", "Held", "Not calculable"]} value={biometryFilter} onChange={setBiometryFilter} />}
+          {tab === "imaging" && <FilterChips label="Filter imaging units by status" options={["All", "Running", "Idle", "Maintenance"]} value={unitFilter} onChange={setUnitFilter} />}
+          {tab === "lasers" && <FilterChips label="Filter lasers by status" options={["All", "Out of service", "Advisory", "Clear"]} value={laserFilter} onChange={setLaserFilter} />}
+          {tab === "screening" && <FilterChips label="Filter screening grades" options={["All", "Referable", "AI disagreement", "R3", "R2"]} value={gradeFilter} onChange={setGradeFilter} />}
+          {tab === "biometry" && <FilterChips label="Filter biometry by status" options={["All", "Verified", "Held", "Not calculable"]} value={biometryFilter} onChange={setBiometryFilter} />}
         </div>
       </header>
 

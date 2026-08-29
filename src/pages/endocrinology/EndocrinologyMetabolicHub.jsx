@@ -303,13 +303,13 @@ export default function EndocrinologyMetabolicHub() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search patients, conditions, medications..." />
           {tab === "diabetes" && (
-            <FilterChips options={["All", "Low", "Moderate", "High"]} value={dmFilter} onChange={setDmFilter} />
+            <FilterChips label="Filter diabetes patients by risk" options={["All", "Low", "Moderate", "High"]} value={dmFilter} onChange={setDmFilter} />
           )}
           {tab === "thyroid" && (
-            <FilterChips options={["All", "Hypothyroid", "Hyperthyroid", "Euthyroid"]} value={thyroidFilter} onChange={setThyroidFilter} />
+            <FilterChips label="Filter thyroid patients by state" options={["All", "Hypothyroid", "Hyperthyroid", "Euthyroid"]} value={thyroidFilter} onChange={setThyroidFilter} />
           )}
           {tab === "metabolic" && (
-            <FilterChips options={["All", "Low", "High", "Critical"]} value={riskFilter} onChange={setRiskFilter} />
+            <FilterChips label="Filter metabolic patients by risk" options={["All", "Low", "High", "Critical"]} value={riskFilter} onChange={setRiskFilter} />
           )}
           <span className="ml-auto text-[11px] text-slate-500">
             {sim.tick} ticks · <span className={sim.running ? "text-emerald-400" : "text-amber-400"}>{sim.running ? "LIVE" : "PAUSED"}</span>

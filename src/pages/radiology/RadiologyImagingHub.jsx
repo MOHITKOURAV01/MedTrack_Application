@@ -339,13 +339,13 @@ export default function RadiologyImagingHub() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search studies, modalities, AI jobs…" />
           {tab === "worklist" && (
-            <FilterChips options={["All", "STAT", "Urgent", "Routine"]} value={priorityFilter} onChange={setPriorityFilter} />
+            <FilterChips label="Filter worklist by priority" options={["All", "STAT", "Urgent", "Routine"]} value={priorityFilter} onChange={setPriorityFilter} />
           )}
           {tab === "modalities" && (
-            <FilterChips options={["All", "Running", "Idle"]} value={modalityFilter} onChange={setModalityFilter} />
+            <FilterChips label="Filter modalities by status" options={["All", "Running", "Idle"]} value={modalityFilter} onChange={setModalityFilter} />
           )}
           {tab === "ai" && (
-            <FilterChips options={["All", "Completed", "Running", "Queued"]} value={aiFilter} onChange={setAiFilter} />
+            <FilterChips label="Filter AI jobs by status" options={["All", "Completed", "Running", "Queued"]} value={aiFilter} onChange={setAiFilter} />
           )}
           <span className="ml-auto text-[11px] text-slate-500">
             {sim.tick} ticks · <span className={sim.running ? "text-emerald-400" : "text-amber-400"}>{sim.running ? "LIVE" : "PAUSED"}</span>

@@ -322,13 +322,13 @@ export default function LabAutomationHub() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search analyzers, samples, QC runs…" />
           {tab === "fleet" && (
-            <FilterChips options={["All", "Running", "Idle", "Maintenance"]} value={statusFilter} onChange={setStatusFilter} />
+            <FilterChips label="Filter analyzers by status" options={["All", "Running", "Idle", "Maintenance"]} value={statusFilter} onChange={setStatusFilter} />
           )}
           {tab === "samples" && (
-            <FilterChips options={["All", "STAT", "Urgent", "Routine"]} value={priorityFilter} onChange={setPriorityFilter} />
+            <FilterChips label="Filter samples by priority" options={["All", "STAT", "Urgent", "Routine"]} value={priorityFilter} onChange={setPriorityFilter} />
           )}
           {tab === "qc" && (
-            <FilterChips options={["All", "In Range", "Warning", "Out of Range"]} value={qcFilter} onChange={setQcFilter} />
+            <FilterChips label="Filter QC runs by result" options={["All", "In Range", "Warning", "Out of Range"]} value={qcFilter} onChange={setQcFilter} />
           )}
           <span className="ml-auto text-[11px] text-slate-500">
             {sim.tick} ticks · <span className={sim.running ? "text-emerald-400" : "text-amber-400"}>{sim.running ? "LIVE" : "PAUSED"}</span>

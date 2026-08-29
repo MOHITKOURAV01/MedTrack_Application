@@ -322,13 +322,13 @@ export default function RegulatoryAuditHub() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search artifacts, events, evidence…" />
           {tab === "provenance" && (
-            <FilterChips options={["All", "Valid", "Suspicious"]} value={statusFilter} onChange={setStatusFilter} />
+            <FilterChips label="Filter artifacts by validity" options={["All", "Valid", "Suspicious"]} value={statusFilter} onChange={setStatusFilter} />
           )}
           {tab === "audit" && (
-            <FilterChips options={["All", "Normal", "Flagged", "Critical"]} value={riskFilter} onChange={setRiskFilter} />
+            <FilterChips label="Filter events by risk" options={["All", "Normal", "Flagged", "Critical"]} value={riskFilter} onChange={setRiskFilter} />
           )}
           {tab === "evidence" && (
-            <FilterChips options={["All", "HIPAA", "SOC 2", "ISO 27001", "C2PA", "GDPR", "HITRUST"]} value={frameworkFilter} onChange={setFrameworkFilter} />
+            <FilterChips label="Filter evidence by framework" options={["All", "HIPAA", "SOC 2", "ISO 27001", "C2PA", "GDPR", "HITRUST"]} value={frameworkFilter} onChange={setFrameworkFilter} />
           )}
           <span className="ml-auto text-[11px] text-slate-500">
             {sim.tick} ticks · <span className={sim.running ? "text-emerald-400" : "text-amber-400"}>{sim.running ? "LIVE" : "PAUSED"}</span>

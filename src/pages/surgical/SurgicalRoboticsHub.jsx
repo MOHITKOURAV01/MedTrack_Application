@@ -328,13 +328,13 @@ export default function SurgicalRoboticsHub() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search robots, ORs, instruments…" />
           {tab === "fleet" && (
-            <FilterChips options={["All", "In Surgery", "Ready", "Maintenance", "Offline"]} value={statusFilter} onChange={setStatusFilter} />
+            <FilterChips label="Filter robots by status" options={["All", "In Surgery", "Ready", "Maintenance", "Offline"]} value={statusFilter} onChange={setStatusFilter} />
           )}
           {tab === "schedule" && (
-            <FilterChips options={["All", "Elective", "Urgent", "Emergent"]} value={priorityFilter} onChange={setPriorityFilter} />
+            <FilterChips label="Filter theatres by priority" options={["All", "Elective", "Urgent", "Emergent"]} value={priorityFilter} onChange={setPriorityFilter} />
           )}
           {tab === "telemetry" && (
-            <FilterChips options={["All", "In Use", "Sterile Ready", "In Sterilizer", "Expired — Re-sterilize"]} value={instFilter} onChange={setInstFilter} />
+            <FilterChips label="Filter instruments by state" options={["All", "In Use", "Sterile Ready", "In Sterilizer", "Expired — Re-sterilize"]} value={instFilter} onChange={setInstFilter} />
           )}
           <span className="ml-auto text-[11px] text-slate-500">
             {sim.tick} ticks · <span className={sim.running ? "text-emerald-400" : "text-amber-400"}>{sim.running ? "LIVE" : "PAUSED"}</span>

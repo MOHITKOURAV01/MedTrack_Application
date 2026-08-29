@@ -457,9 +457,9 @@ export default function AnesthesiologyPacuHub() {
         {/* toolbar */}
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search patients, rooms, procedures, blocks…" />
-          {tab === "or" && <FilterChips options={["All", "Induction", "Maintenance", "Emergence", "Difficult airway", "Critical"]} value={orFilter} onChange={setOrFilter} />}
-          {tab === "pacu" && <FilterChips options={["All", "Ready", "Not ready", "PONV", "Respiratory event"]} value={pacuFilter} onChange={setPacuFilter} />}
-          {tab === "blocks" && <FilterChips options={["All", "Catheter", "Dose ceiling", "Catheter ≥ 3d"]} value={blockFilter} onChange={setBlockFilter} />}
+          {tab === "or" && <FilterChips label="Filter theatres by phase" options={["All", "Induction", "Maintenance", "Emergence", "Difficult airway", "Critical"]} value={orFilter} onChange={setOrFilter} />}
+          {tab === "pacu" && <FilterChips label="Filter PACU bays by status" options={["All", "Ready", "Not ready", "PONV", "Respiratory event"]} value={pacuFilter} onChange={setPacuFilter} />}
+          {tab === "blocks" && <FilterChips label="Filter blocks by status" options={["All", "Catheter", "Dose ceiling", "Catheter ≥ 3d"]} value={blockFilter} onChange={setBlockFilter} />}
         </div>
       </header>
 

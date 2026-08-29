@@ -326,13 +326,13 @@ export default function PharmacovigilanceHub() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search cases, signals, submissions…" />
           {tab === "cases" && (
-            <FilterChips options={["All", "Serious", "Non-serious"]} value={sevFilter} onChange={setSevFilter} />
+            <FilterChips label="Filter cases by seriousness" options={["All", "Serious", "Non-serious"]} value={sevFilter} onChange={setSevFilter} />
           )}
           {tab === "signals" && (
-            <FilterChips options={["All", "Tier 1", "Tier 2", "Tier 3"]} value={tierFilter} onChange={setTierFilter} />
+            <FilterChips label="Filter signals by tier" options={["All", "Tier 1", "Tier 2", "Tier 3"]} value={tierFilter} onChange={setTierFilter} />
           )}
           {tab === "submissions" && (
-            <FilterChips options={["All", "In Progress", "Drafting", "Review", "Scheduled"]} value={statusFilter} onChange={setStatusFilter} />
+            <FilterChips label="Filter submissions by status" options={["All", "In Progress", "Drafting", "Review", "Scheduled"]} value={statusFilter} onChange={setStatusFilter} />
           )}
           <span className="ml-auto text-[11px] text-slate-500">
             {sim.tick} ticks · <span className={sim.running ? "text-emerald-400" : "text-amber-400"}>{sim.running ? "LIVE" : "PAUSED"}</span>

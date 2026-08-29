@@ -364,13 +364,13 @@ export default function SecurityComplianceHub() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CompactSearch value={query} onChange={setQuery} placeholder="Search identities, keys, detections…" />
           {tab === "zero-trust" && (
-            <FilterChips options={["All", "Healthy", "Degraded", "At Risk"]} value={postureFilter} onChange={setPostureFilter} />
+            <FilterChips label="Filter by posture" options={["All", "Healthy", "Degraded", "At Risk"]} value={postureFilter} onChange={setPostureFilter} />
           )}
           {tab === "kms" && (
-            <FilterChips options={["All", "Active", "Rotating", "Retired"]} value={keyStatusFilter} onChange={setKeyStatusFilter} />
+            <FilterChips label="Filter by key status" options={["All", "Active", "Rotating", "Retired"]} value={keyStatusFilter} onChange={setKeyStatusFilter} />
           )}
           {tab === "ctem" && (
-            <FilterChips options={["All", "Critical", "High", "Medium", "Low"]} value={sevFilter} onChange={setSevFilter} />
+            <FilterChips label="Filter by severity" options={["All", "Critical", "High", "Medium", "Low"]} value={sevFilter} onChange={setSevFilter} />
           )}
           <span className="ml-auto text-[11px] text-slate-500">
             {sim.tick} ticks · <span className={sim.running ? "text-emerald-400" : "text-amber-400"}>{sim.running ? "LIVE" : "PAUSED"}</span>
