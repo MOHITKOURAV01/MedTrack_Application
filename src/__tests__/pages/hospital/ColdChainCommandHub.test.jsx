@@ -17,11 +17,11 @@ describe("ColdChainCommandHub Component", () => {
     expect(screen.getByText("Suspect products")).toBeInTheDocument();
     expect(screen.getByText("High-impact excursions")).toBeInTheDocument();
 
-    expect(screen.getByRole("button", { name: /Cryo Telemetry/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /RFID Serialization/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /DSCSA Track & Trace/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Narcotic Vault Audit/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Arrhenius Kinetics/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Cryo Telemetry/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /RFID Serialization/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /DSCSA Track & Trace/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Narcotic Vault Audit/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Arrhenius Kinetics/ })).toBeInTheDocument();
   });
 
   it("shows the cryo freezer fleet with live telemetry on the default tab", () => {
@@ -45,7 +45,7 @@ describe("ColdChainCommandHub Component", () => {
   it("switches to the RFID tab and filters tags by search query", () => {
     renderWithProviders(<ColdChainCommandHub onNavigate={() => {}} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /RFID Serialization/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /RFID Serialization/ }));
 
     expect(screen.getByText("Fentanyl citrate 50 mcg/mL")).toBeInTheDocument();
     expect(screen.getByText("Adderall XR 20 mg caps")).toBeInTheDocument();
@@ -60,7 +60,7 @@ describe("ColdChainCommandHub Component", () => {
   it("switches to the vault tab and surfaces Schedule II discrepancies", () => {
     renderWithProviders(<ColdChainCommandHub onNavigate={() => {}} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Narcotic Vault Audit/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Narcotic Vault Audit/ }));
 
     expect(screen.getByText("Sufentanil citrate 50 mcg/mL")).toBeInTheDocument();
     expect(screen.getByText("Audit trail")).toBeInTheDocument();
@@ -70,7 +70,7 @@ describe("ColdChainCommandHub Component", () => {
   it("switches to the Arrhenius tab and shows kinetic impact labels", () => {
     renderWithProviders(<ColdChainCommandHub onNavigate={() => {}} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Arrhenius Kinetics/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Arrhenius Kinetics/ }));
 
     expect(screen.getByText("Gene therapy vector lot GT-114")).toBeInTheDocument();
     expect(screen.getAllByText(/shelf-life loss/).length).toBeGreaterThan(0);
