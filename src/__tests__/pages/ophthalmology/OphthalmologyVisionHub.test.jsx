@@ -334,7 +334,7 @@ describe("OphthalmologyVisionHub rendering", () => {
     expect(screen.getByText("Lens Powers Held")).toBeInTheDocument();
 
     for (const label of ["Imaging Fleet", "Laser Suite", "DR Screening", "IOL Biometry"]) {
-      expect(screen.getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: new RegExp(label) })).toBeInTheDocument();
     }
   });
 
@@ -378,7 +378,7 @@ describe("OphthalmologyVisionHub rendering", () => {
   it("takes the interlock-open and over-limit lasers out of service", () => {
     renderWithProviders(<OphthalmologyVisionHub />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Laser Suite/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Laser Suite/ }));
 
     // OPH-LAS-04 has interlock false; OPH-LAS-05 is past its shot limit; OPH-LAS-02 and OPH-LAS-06
     // are outside the energy tolerance.
@@ -388,7 +388,7 @@ describe("OphthalmologyVisionHub rendering", () => {
   it("records a laser output check and returns it to tolerance", () => {
     renderWithProviders(<OphthalmologyVisionHub />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Laser Suite/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Laser Suite/ }));
     const before = screen.getAllByText("Out of service").length;
 
     const row = screen.getByText("OPH-LAS-02").closest("tr");
@@ -400,7 +400,7 @@ describe("OphthalmologyVisionHub rendering", () => {
   it("surfaces the referral window and the AI disagreement on a screening episode", () => {
     renderWithProviders(<OphthalmologyVisionHub />);
 
-    fireEvent.click(screen.getByRole("button", { name: /DR Screening/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /DR Screening/ }));
 
     expect(screen.getByText("DRS-4473")).toBeInTheDocument();
     expect(screen.getAllByText(/Refer urgently/).length).toBeGreaterThan(0);
@@ -411,7 +411,7 @@ describe("OphthalmologyVisionHub rendering", () => {
   it("filters screening episodes down to the referable ones", () => {
     renderWithProviders(<OphthalmologyVisionHub />);
 
-    fireEvent.click(screen.getByRole("button", { name: /DR Screening/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /DR Screening/ }));
     fireEvent.click(screen.getByRole("button", { name: "Referable" }));
 
     // The R0/R0 pair is the only non-referable, fully clear patient in the seed set.
@@ -422,7 +422,7 @@ describe("OphthalmologyVisionHub rendering", () => {
   it("shows the recalculated power beside the plan on the biometry console", () => {
     renderWithProviders(<OphthalmologyVisionHub />);
 
-    fireEvent.click(screen.getByRole("button", { name: /IOL Biometry/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /IOL Biometry/ }));
 
     expect(screen.getByText("BIO-2201")).toBeInTheDocument();
     expect(screen.getAllByText("Recalc.").length).toBeGreaterThan(0);
@@ -432,7 +432,7 @@ describe("OphthalmologyVisionHub rendering", () => {
   it("refuses a power for the short and post-refractive eyes and says so", () => {
     renderWithProviders(<OphthalmologyVisionHub />);
 
-    fireEvent.click(screen.getByRole("button", { name: /IOL Biometry/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /IOL Biometry/ }));
     fireEvent.click(screen.getByRole("button", { name: "Not calculable" }));
 
     // BIO-2203 is 21.36 mm; BIO-2205 has a 38.90 D cornea.
@@ -444,7 +444,7 @@ describe("OphthalmologyVisionHub rendering", () => {
   it("opens the biometry inspection panel with the worked calculation", () => {
     renderWithProviders(<OphthalmologyVisionHub />);
 
-    fireEvent.click(screen.getByRole("button", { name: /IOL Biometry/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /IOL Biometry/ }));
     fireEvent.click(screen.getByRole("button", { name: "BIO-2201" }));
 
     expect(screen.getByText(/SRK II bands the A-constant/)).toBeInTheDocument();
